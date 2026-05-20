@@ -1,1 +1,993 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none; /* блокирует iOS long-press меню */
+}
 
+/* МОБИЛЬНАЯ АДАПТАЦИЯ */
+html {
+    /* Запрет bounce-скролла на iOS */
+    overscroll-behavior: none;
+    overflow: hidden;
+    height: 100%;
+}
+
+body {
+    background: #1a1a2e; /* fallback — перекрывается ui_config.js если задан src */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;      /* fallback для старых WebView */
+    height: 100dvh;
+    min-height: 100vh;  /* fallback */
+    min-height: 100dvh;
+    overflow: hidden;
+    /* Запрет bounce-скролла */
+    overscroll-behavior: none;
+    touch-action: none;
+    font-family: 'Nunito', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Обёртка игры — размеры фиксированы, масштаб через JS */
+#gameWrapper {
+    transform-origin: center center;
+    position: relative;
+    width: 380px;
+    height: 620px;
+    border: 2.5px solid #aab0bb;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 5px 5px 0 #c0c0c0;
+    flex-shrink: 0;
+}
+/* Игровое поле */
+#gameCanvas {
+    display: block;
+}
+/* Счет */
+#scoreDisplay {
+    position: absolute;
+    top: 12px; left: 14px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2d2d2d;
+    pointer-events: none;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
+}
+/* Рекорд */
+#highScoreDisplay {
+    position: absolute;
+    top: 40px; 
+    left: 14px;
+    font-size: 13px;
+    color: #888888;
+    pointer-events: none;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
+}
+/* Экран начала игры */
+#overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.85);
+    gap: 10px;
+}
+
+#overlay h1 {
+    font-size: 42px;
+    color: #222222;
+    text-align: center;
+    line-height: 1.1;
+}
+
+#overlay .sub {
+    font-size: 14px;
+    color: #777777;
+    text-align: center;
+    max-width: 270px;
+    line-height: 1.5;
+}
+/* Легенда платформ */
+.legend {
+    display: flex;
+    text-align: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 4px;
+}
+/* Текст под платформами */
+.li {
+    width: 55px;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #555;
+}
+/* Платформы */
+.ld {
+    width: 55px;
+    height: 11px;
+    border-radius: 5px;
+    border: 2px solid rgba(0,0,0,0.25);
+}
+/* Кнопки главного меню */
+.menu-btn {
+    width: 170px;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    margin-top: 8px;
+    padding: 13px 20px;
+    font-size: 18px;
+    font-family: inherit;
+    font-weight: 700;
+    background: #222222;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 #666666;
+    transition: transform 0.08s, box-shadow 0.08s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.menu-btn:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0 #666666;
+}
+
+.menu-btn:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #666666;
+}
+
+/* Продолжить игру */
+#btnResume {
+    width: 175px;
+    padding:12px 18px;
+    font-size:18px;
+    font-family:inherit;
+    font-weight:700;
+    background:#222;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:3px 3px 0 #666;
+}
+#btnResume:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0 #666;
+}
+#btnResume:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #666;
+}
+/* Рестарт */
+#btnRestart {
+    width: 150px;
+    padding:8px 16px;
+    font-size:16px;
+    font-family:inherit;
+    font-weight:700;
+    background:#fff;
+    color:#333;
+    border:2px solid #aaa;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:3px 3px 0 #bbb;
+}
+#btnRestart:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0 #bbb;
+}
+#btnRestart:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #bbb;
+}
+/* Меню */
+#btnMenu {
+    padding:12px 18px;
+    font-size:16px;
+    font-family:inherit;
+    font-weight:700;
+    background:#fff;
+    color:#333;
+    border:2px solid #aaa;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:3px 3px 0 #bbb;
+}
+#btnMenu:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0 #bbb;
+}
+#btnMenu:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #bbb;
+}
+/* Снова */
+#btnRetry {
+    padding:12px 18px;
+    font-size:16px;
+    font-family:inherit;
+    font-weight:700;
+    background:#222;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:3px 3px 0 #666;
+}
+#btnRetry:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0 #666;
+}
+#btnRetry:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #666;
+}
+/* Меню паузы */
+#btnPauseMenu {
+    width: 150px;
+    padding:8px 16px;
+    font-size:16px;
+    font-family:inherit;
+    font-weight:700;
+    background:#fff;
+    color:#333;
+    border:2px solid #aaa;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:3px 3px 0 #bbb;
+}
+#btnPauseMenu:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0 #bbb;
+}
+#btnPauseMenu:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #bbb;
+}
+/* Возродиться (смотреть рекламу) */
+#btnRevive {
+    padding:12px 18px;
+    font-size:16px;
+    font-family:inherit;
+    font-weight:700;
+    background:#222;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:3px 3px 0 #666;
+}
+#btnRevive:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0 #bbb;
+}
+#btnRevive:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #bbb;
+}
+/* Пропустить */
+#btnSkipRevive {
+    padding:12px 18px;
+    font-size:16px;
+    font-family:inherit;
+    font-weight:700;
+    background:#fff;
+    color:#333;
+    border:2px solid #aaa;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:3px 3px 0 #bbb;
+}
+#btnSkipRevive:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0 #bbb;
+}
+#btnSkipRevive:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #bbb;
+}
+
+#controls {
+    position: absolute;
+    bottom: 10px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 12px;
+    pointer-events: all;
+}
+
+.ctrl-btn {
+    width: 64px; height: 44px;
+    background: rgba(0,0,0,0.12);
+    border: 1.5px solid rgba(0,0,0,0.2);
+    border-radius: 10px;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.ctrl-btn:active {
+    background: rgba(0,0,0,0.25);
+}
+
+/* Кнопка паузы */
+#pauseBtn {
+    position: absolute;
+    top: 10px; right: 12px;
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.75);
+    border: 1.5px solid rgba(0,0,0,0.15);
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.10);
+    transition: background 0.08s, transform 0.08s;
+    z-index: 10;
+    padding: 0;
+}
+#pauseBtn:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.15);
+}
+#pauseBtn:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 rgba(0,0,0,0.15);
+}
+/* Экран паузы */
+#pauseScreen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.88);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 9;
+}
+
+/* Переключатели управления */
+.ctrl-scheme {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 2px;
+    width: 100%;
+}
+
+.ctrl-scheme-btn {
+    flex: 0 0 90px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 700;
+    color: #666;
+    background: rgba(255,255,255,0.7);
+    border: 1.5px solid #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+    line-height: 1.4;
+}
+
+.ctrl-scheme-btn.active {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+}
+
+.ctrl-scheme-btn:hover:not(.active) {
+    background: rgba(0,0,0,0.07);
+}
+
+/* Рекорд в главном меню */
+.menu-record {
+    font-size: 18px;
+    font-weight: 700;
+    color: #444;
+    text-align: center;
+}
+
+/* Лидерборд */
+.lb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.lb-table th {
+    text-align: left;
+    padding: 4px 8px;
+    border-bottom: 2px solid #ddd;
+    color: #888;
+    font-weight: 600;
+}
+
+.lb-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Строка текущего игрока */
+.lb-table tr.lb-me td {
+    background: rgba(92, 184, 92, 0.15);
+    font-weight: 700;
+    color: #2d7a2d;
+}
+
+.lb-rank  { width: 32px; color: #aaa; text-align: center; }
+.lb-score { text-align: right; font-weight: 700; color: #333; }
+.lb-name  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Кнопка лидерборда в меню */
+.menu-btn-lb {
+    background: #3a3a3a !important;
+    opacity: 0.85;
+}
+/* Версия игры */
+#showversion {
+    font-size: 12px;
+    font-family: inherit;
+    color: #666;
+}
+/* Кнопка ЗАКРЫТЬ в настройках главного экрана */
+#btnSettingsBack {
+    width: 34px;
+    height: 34px;
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 700;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 0 #ccc;
+    transition: transform 0.08s, box-shadow 0.08s;
+}
+/* Кнопка ЗАКРЫТЬ в лидерборде */
+#btnLBBack {
+    width: 34px;
+    height: 34px;
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 700;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 0 #ccc;
+    transition: transform 0.08s, box-shadow 0.08s;
+}
+/* МАГАЗИН */
+.shop-wrap {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Шапка: заголовок + крестик */
+.shop-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px 8px;
+    flex-shrink: 0;
+}
+
+.shop-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #222;
+}
+
+.shop-back-btn {
+    width: 34px;
+    height: 34px;
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 700;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 0 #ccc;
+    transition: transform 0.08s, box-shadow 0.08s;
+}
+.shop-back-btn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 #ccc; }
+.shop-back-btn:active { transform: translate(1px,1px);  box-shadow: 1px 1px 0 #ccc; }
+
+/* Вкладки */
+.shop-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 10px;
+    flex-shrink: 0;
+}
+
+.shop-tab {
+    flex: 1;
+    padding: 8px 0;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 700;
+    color: #666;
+    background: rgba(255,255,255,0.6);
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.shop-tab.active {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+    box-shadow: 2px 2px 0 #666;
+}
+
+.shop-tab:hover:not(.active) {
+    background: rgba(0,0,0,0.06);
+}
+
+/* Сетка карточек скролл */
+.shop-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 4px 14px 16px;
+    overflow-y: auto;
+    flex: 1;
+    align-content: start;
+}
+
+/* Карточка скина и буста */
+.shop-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 6px 8px;
+    background: rgba(255,255,255,0.75);
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.08s, box-shadow 0.08s, border-color 0.1s;
+    box-shadow: 2px 2px 0 #ddd;
+}
+
+.shop-card:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 3px 3px 0 #bbb;
+}
+
+.shop-card:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #ddd;
+}
+
+/* Выбранная карточка */
+.shop-card.selected {
+    border-color: #222;
+    background: rgba(34,34,34,0.06);
+    box-shadow: 2px 2px 0 #888;
+}
+
+/* Превью изображения скина */
+.shop-card-preview {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shop-card-preview img {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+/* Иконка буста */
+.boost-icon {
+    font-size: 34px;
+    line-height: 1;
+}
+
+/* Название */
+.shop-card-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #333;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Описание буста */
+.shop-card-desc {
+    font-size: 9px;
+    color: #777;
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* Статусный бейдж */
+.shop-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: inherit;
+}
+
+.shop-badge.active {
+    background: #222;
+    color: #fff;
+}
+
+.shop-badge.owned {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.shop-badge.locked {
+    background: #f5f5f5;
+    color: #999;
+    border: 1px solid #ddd;
+}
+
+/* HUD алмазов в игре, под рекордом */
+#diamondDisplay {
+    position: absolute;
+    top: 58px;
+    left: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #5b8dee;
+    pointer-events: none;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
+}
+
+/* Алмазы в шапке магазина */
+.shop-balance {
+    font-size: 15px;
+    font-weight: 700;
+    color: #5b8dee;
+    background: rgba(91,141,238,0.1);
+    border: 1.5px solid rgba(91,141,238,0.3);
+    border-radius: 8px;
+    padding: 3px 8px;
+    white-space: nowrap;
+}
+
+/* Карточка заблокированного скина */
+.shop-lock-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+    pointer-events: none;
+}
+
+/* Цена (бейдж) */
+.shop-badge.price {
+    background: rgba(91,141,238,0.12);
+    color: #3a6bd4;
+    border: 1px solid rgba(91,141,238,0.35);
+}
+
+/* Анимация тряски при нехватке алмазов */
+@keyframes shake {
+    0%   { transform: translateX(0); }
+    20%  { transform: translateX(-5px); }
+    40%  { transform: translateX(5px); }
+    60%  { transform: translateX(-4px); }
+    80%  { transform: translateX(4px); }
+    100% { transform: translateX(0); }
+}
+.shake {
+    animation: shake 0.35s ease;
+}
+
+/* Правая часть шапки магазина: баланс + кнопка рекламы */
+.shop-header-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Кнопка +10💎 */
+.shop-ad-btn {
+    font-size: 15px;
+    font-weight: 700;
+    color: #5b8dee;
+    background: rgba(91,141,238,0.1);
+    border: 1.5px solid rgba(91,141,238,0.3);
+    border-radius: 8px;
+    padding: 4px 4px;
+    white-space: nowrap;
+}
+.shop-ad-btn:hover {
+    background: rgba(91,141,238,0.2);
+    transform: translate(-1px,-1px);
+    box-shadow: 2px 2px 0 rgba(91,141,238,0.25);
+}
+.shop-ad-btn:active {
+    transform: translate(1px,1px);
+    box-shadow: none;
+}
+.shop-ad-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ПАССИВНЫЕ НАВЫКИ */
+
+/* Заголовок секции Пассивный + Активный */
+.boost-section-title {
+    grid-column: 1 / -1;
+    font-size: 13px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 4px 0 2px;
+    padding: 0 2px;
+}
+.boost-section-title--active {
+    margin-top: 12px;
+}
+
+/* Карточка пассива на всю ширину контента */
+.boost-passive-card {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 6px 8px;
+    background: rgba(255,255,255,0.75);
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.08s, box-shadow 0.08s;
+    box-shadow: 2px 2px 0 #ddd;
+}
+
+.boost-passive-icon {
+    font-size: 32px;
+    line-height: 1;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.boost-passive-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.boost-passive-body {
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+}
+
+.boost-passive-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #222;
+    line-height: 1.2;
+}
+
+.boost-passive-desc {
+    font-size: 9px;
+    color: #888;
+    margin: 1px 0 2px;
+}
+
+.boost-passive-bonus {
+    font-size: 11px;
+    font-weight: 700;
+    color: #3a6bd4;
+    margin-bottom: 2px;
+}
+
+/* Прогресс-бар */
+.boost-passive-bar-wrap {
+    width: 100%;
+    height: 6px;
+    background: #eee;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 3px;
+}
+
+.boost-passive-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #5b8dee, #3a6bd4);
+    border-radius: 3px;
+    transition: width 0.25s ease;
+}
+
+.boost-passive-level {
+    font-size: 10px;
+    color: #aaa;
+}
+
+/* Кнопка прокачки правая */
+.boost-passive-upgrade {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 4px;
+}
+
+.boost-upgrade-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 700;
+    background: #222;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.4;
+    box-shadow: 2px 2px 0 #666;
+    transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.boost-upgrade-btn:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 3px 3px 0 #666;
+}
+
+.boost-upgrade-btn:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #666;
+}
+
+.boost-upgrade-cost {
+    font-size: 10px;
+    opacity: 0.85;
+}
+
+.boost-upgrade-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Кнопка Смотреть рекламу в активных бустах */
+.active-ad-btn {
+    padding: 15px 8px;
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 700;
+    background: #222;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.4;
+    box-shadow: 2px 2px 0 #666;
+    transition: transform 0.08s, box-shadow 0.08s;
+}
+.active-ad-btn:hover {
+    transform: translate(-1px,-1px);
+    box-shadow: 3px 3px 0 #666;
+}
+.active-ad-btn:active {
+    transform: translate(1px,1px);
+    box-shadow: 1px 1px 0 #666;
+}
+.active-ad-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+/* АКТИВНЫЕ БУСТЫ */
+/* Статус-строка */
+.active-status {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    margin: 4px 0;
+}
+
+.active-status--on {
+    background: rgba(76, 175, 80, 0.15);
+    color: #2e7d32;
+    border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.active-status--cd {
+    background: rgba(255, 152, 0, 0.12);
+    color: #e65100;
+    border: 1px solid rgba(255, 152, 0, 0.35);
+}
+
+
+/* Строка кнопок активации */
+.active-btn-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+/* Иконка пассива во время действия буста */
+.boost-passive-icon--active {
+    animation: fever-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes fever-pulse {
+    from { transform: scale(1);    filter: none; }
+    to   { transform: scale(1.2); filter: drop-shadow(0 0 4px #f5a623); }
+}
