@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Joodle</title>
+    <link rel="icon" href="icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- preload критичных ассетов первого экрана -->
+    <link rel="preload" href="img/background.jpg" as="image">
+    <link rel="preload" href="img/dood.png" as="image">
+    <!--ЯНДЕКС SDK-->
+    <script>
+        let _resolveSDK;
+        window.yandexSDKPromise = new Promise(resolve => { _resolveSDK = resolve; });
+        async function initSDK() {
+            try {
+                const ysdk = await YaGames.init();
+                window.yandexSDK = ysdk;
+                _resolveSDK(ysdk);
+            } catch (e) {
+                console.warn('[SDK] Инициализация не удалась:', e);
+                _resolveSDK(null);
+            }
+        }
+    </script>
+    <script async src="/sdk.js" onload="initSDK()"></script>
+    <!--СКРИПТЫ ИГРЫ-->
+    <script src="js/sdk.js" defer></script>
+    <script src="js/ui_config.js" defer></script>
+    <script src="js/i18n.js" defer></script>
+    <script src="js/constants.js" defer></script>
+    <script src="js/gamestate.js" defer></script>
+    <script src="js/player.js" defer></script>
+    <script src="js/platform.js" defer></script>
+    <script src="js/platform_generator.js" defer></script>
+    <script src="js/physics.js" defer></script>
+    <script src="js/particle.js" defer></script>
+    <script src="js/inputhandler.js" defer></script>
+    <script src="js/background.js" defer></script>
+    <script src="js/canvas.js" defer></script>
+    <script src="js/audio.js" defer></script>
+    <script src="js/leaderboard.js" defer></script>
+    <script src="js/adv.js" defer></script>
+    <script src="js/currency.js" defer></script>
+    <script src="js/passives.js" defer></script>
+    <script src="js/actives.js" defer></script>
+    <script src="js/diamond_item.js" defer></script>
+    <script src="js/shop.js" defer></script>
+    <script src="js/yandex_sync.js" defer></script>
+    <script src="js/start.js" defer></script>
+    <script src="js/loop.js" defer></script>
+</head>
+<body>
+    <div id="gameWrapper">
+        <canvas id="gameCanvas" width="380" height="620"></canvas>
+        <div id="scoreDisplay">0</div>
+        <div id="highScoreDisplay">Рекорд: 0</div>
+        <div id="diamondDisplay" style="display:none;">💎 0</div>
+        <div id="overlay"></div>
+        <div class="gameversion">v.1.5.0</div>
+        <button id="pauseBtn" style="display:none;">⏸</button>
+        <div id="pauseScreen" style="display:none;"></div>
+        <div id="controls" style="display: none;">
+        <div class="ctrl-btn" id="btnLeft"  data-ui-ctrl="left">◀</div>
+        <div class="ctrl-btn" id="btnRight" data-ui-ctrl="right">▶</div>
+        </div>
+    </div>
+</body>
+</html>
