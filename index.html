@@ -12,7 +12,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap">
     <link rel="stylesheet" href="css/style.css">
-    <!-- preload критичных ассетов первого экрана -->
     <link rel="preload" href="img/background.jpg" as="image">
     <link rel="preload" href="img/dood.png" as="image">
     <!--ЯНДЕКС SDK-->
@@ -55,6 +54,14 @@
     <script src="js/diamond_item.js" defer></script>
     <script src="js/shop.js" defer></script>
     <script src="js/yandex_sync.js" defer></script>
+    <!--ЭКРАНЫ-->
+    <script src="js/screens/screen_menu.js" defer></script>
+    <script src="js/screens/screen_pause.js" defer></script>
+    <script src="js/screens/screen_revive.js" defer></script>
+    <script src="js/screens/screen_death.js" defer></script>
+    <script src="js/screens/screen_leaderboard.js" defer></script>
+    <script src="js/screens/screen_settings.js" defer></script>
+    <!--КООРДИНАТОР И ЦИКЛ-->
     <script src="js/start.js" defer></script>
     <script src="js/loop.js" defer></script>
 </head>
@@ -65,12 +72,12 @@
         <div id="highScoreDisplay">Рекорд: 0</div>
         <div id="diamondDisplay" style="display:none;">💎 0</div>
         <div id="overlay"></div>
-        <div class="gameversion">v.1.5.4</div>
+        <div class="gameversion">v.1.5.5</div>
         <button id="pauseBtn" style="display:none;">⏸</button>
         <div id="pauseScreen" style="display:none;"></div>
         <div id="controls" style="display: none;">
-        <div class="ctrl-btn" id="btnLeft"  data-ui-ctrl="left">◀</div>
-        <div class="ctrl-btn" id="btnRight" data-ui-ctrl="right">▶</div>
+            <div class="ctrl-btn" id="btnLeft"  data-ui-ctrl="left">◀</div>
+            <div class="ctrl-btn" id="btnRight" data-ui-ctrl="right">▶</div>
         </div>
     </div>
 </body>
