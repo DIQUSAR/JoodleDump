@@ -30,7 +30,6 @@ function showGameOverScreen() {
     applyUIConfig(overlay);
 }
 
-// вызывается из physics.js когда игрок упал за экран
 function showGameOver() {
     SDK.Gameplay.stop();
     Audio.systemPause();
