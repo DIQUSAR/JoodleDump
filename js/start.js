@@ -215,11 +215,11 @@ function _revivePlayer() {
     lastGenType = 'normal';
     resetDiamonds();
 
-    platforms.push(makePlatform(safeX, safeY, 'normal'));
+    platforms.push(makeGamePlatform(safeX, safeY, 'normal', GameState.score));
     let py = safeY;
     for (let i = 0; i < 14; i++) {
         py -= 70 + Math.random() * 55;
-        platforms.push(makePlatform(Math.random() * (W - 70), py, pickType(GameState.score)));
+        platforms.push(makeGamePlatform(Math.random() * (W - 70), py, pickType(GameState.score), GameState.score));
     }
 
     Audio.systemResume();
