@@ -2,7 +2,6 @@
 
 const Particles = (() => {
 
-    // спавн частиц-брызг
     function spawnParticles(x, y, color) {
         for (let i = 0; i < 7; i++) {
             GameState.particles.push({
@@ -15,9 +14,11 @@ const Particles = (() => {
         }
     }
 
-    // img — готовый HTMLImageElement из кэша (DiamondSprite.get())
-    // передавать src-строку нельзя — создаёт new Image() в игровом цикле
-    function spawnPopup(x, y, text, color, img) {
+    // imgSrc — строка пути к спрайту или null.
+    // img разрешается внутри через DiamondSprite.get() — вызывающий
+    // не обязан знать о внутреннем кэше.
+    function spawnPopup(x, y, text, color, imgSrc = null) {
+        const img     = imgSrc ? DiamondSprite.get() : null;
         GameState.popups.push({
             x,
             screenY:  y - GameState.cameraY,
@@ -29,7 +30,6 @@ const Particles = (() => {
         });
     }
 
-    // обновление и отрисовка частиц за один проход
     function _updateParticles() {
         const list = GameState.particles;
         for (let i = list.length - 1; i >= 0; i--) {
@@ -96,7 +96,6 @@ const Particles = (() => {
         }
     }
 
-    // единственная публичная функция обновления — вызывается из loop
     function update() {
         _updateParticles();
         _updatePopups();
@@ -105,8 +104,8 @@ const Particles = (() => {
     return { spawnParticles, spawnPopup, update };
 })();
 
-// обратная совместимость — physics.js, diamond_item.js вызывают эти функции напрямую
-function spawnParticles(x, y, color) { Particles.spawnParticles(x, y, color); }
-function spawnPopup(x, y, text, color, img) { Particles.spawnPopup(x, y, text, color, img); }
-function updateParticles() { Particles.update(); }
-function updatePopups()    { Particles.update(); }
+// обратная совместимость
+function spawnParticles(x, y, color)              { Particles.spawnParticles(x, y, color); }
+function spawnPopup(x, y, text, color, imgSrc)    { Particles.spawnPopup(x, y, text, color, imgSrc); }
+function updateParticles()                         { Particles.update(); }
+function updatePopups()                            { Particles.update(); }

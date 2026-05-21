@@ -1,8 +1,5 @@
 // игровой цикл
 
-let _tickTime    = 0;
-let _loopRunning = false;
-
 function loop() {
     if (GameState.phase !== 'playing') { GameState.loopRunning = false; return; }
     if (GameState.loopRunning) return;
@@ -11,24 +8,24 @@ function loop() {
     function _tick() {
         if (GameState.phase !== 'playing') { GameState.loopRunning = false; return; }
 
-        _tickTime = performance.now() / 1000;
+        GameState.tickTime = performance.now() / 1000;
 
         PlayerSprite.updateGlow();
         update();
         drawBackground();
 
         ctx.save();
-        ctx.translate(0, -cameraY);
+        ctx.translate(0, -GameState.cameraY);
         for (const p of GameState.platforms) {
-            const screenY = p.y - cameraY;
+            const screenY = p.y - GameState.cameraY;
             if (screenY > H + p.h || screenY + p.h < -20) continue;
             drawPlatform(p);
         }
-        Diamonds.draw(_tickTime);
+        Diamonds.draw(GameState.tickTime);
         drawPlayer(GameState.player);
         ctx.restore();
 
-        Diamonds.update(_tickTime);
+        Diamonds.update(GameState.tickTime);
         Particles.update();
 
         GameState.rafId = requestAnimationFrame(_tick);

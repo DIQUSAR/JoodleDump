@@ -1,12 +1,4 @@
 // генератор платформ
-//
-// баланс сложности — плавные фазы через интерполяцию:
-//   0–150:   разгон
-//   150–300: плавный ввод
-//   300–900: средняя сложность
-//   900–1800: жёсткий режим
-//   1800–3600: хард
-//   3600+: максимум
 
 const PLATFORM_BALANCE = [
     { at:    0, normal: 0.85, oneshot: 0.15, moving: 0.00, fragile: 0.00 },
@@ -79,8 +71,6 @@ function _applyMovingBehavior(p, score) {
     }
 }
 
-// единственная точка создания платформ в игре
-// объединяет makePlatform (чистая фабрика) + moving-поведение
 function makeGamePlatform(x, y, type, score = 0) {
     const p = makePlatform(x, y, type);
     if (type === 'moving') _applyMovingBehavior(p, score);
@@ -102,18 +92,18 @@ function spawnInitialPlatforms() {
 }
 
 function generateMore() {
-    if (_topPlatY - cameraY > -H * 0.5) {
+    if (_topPlatY - GameState.cameraY > -H * 0.5) {
         const ny      = _topPlatY - (65 + Math.random() * 65);
         const nx      = Math.random() * (W - 70);
         const newPlat = makeGamePlatform(nx, ny, pickType(GameState.score), GameState.score);
         GameState.platforms.push(newPlat);
         _topPlatY = ny;
-        spawnDiamondBetween(newPlat);
+        Diamonds.spawnBetween(newPlat);
     }
 
     for (let i = GameState.platforms.length - 1; i >= 0; i--) {
         const p = GameState.platforms[i];
-        if (p.y - cameraY >= H + 160 || p.alpha <= 0) {
+        if (p.y - GameState.cameraY >= H + 160 || p.alpha <= 0) {
             GameState.platforms.splice(i, 1);
         }
     }

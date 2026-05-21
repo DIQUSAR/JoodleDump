@@ -1,7 +1,5 @@
 // координатор состояний игры
-// рендер экранов — в js/screens/
 
-// html блока схем управления — используется в screen_menu.js
 function _ctrlSchemeHTML() {
     const s = ctrlScheme;
     return `

@@ -1,18 +1,4 @@
-// АУДИО-МЕНЕДЖЕР — Web Audio API
-//
-// Архитектура двухфазная:
-//
-//   Фаза 1 — fetch (без жеста, сразу при загрузке страницы):
-//     Все аудиофайлы скачиваются в _rawBuffers как ArrayBuffer.
-//     AudioContext ещё не создан — браузер не возражает против fetch.
-//
-//   Фаза 2 — decode (после первого жеста пользователя):
-//     AudioContext создаётся, все _rawBuffers декодируются разом.
-//     decodeAudioData не блокирует main thread — браузер делает это
-//     в фоновом потоке.
-//
-// Результат: к моменту нажатия Старт все треки уже декодированы,
-// переключение музыки мгновенное, без тишины и подгрузок.
+// аудио-менеджер — web audio api
 
 const AUDIO_CONFIG = {
     menu:    { src: 'audio/audio_menu.mp3',    volume: 0.20, loop: true  },
@@ -25,20 +11,15 @@ const Audio = (() => {
 
     let _ctx        = null;
     let _masterGain = null;
-    let _buffers    = {};      // name → AudioBuffer (готовы после decode)
-    let _rawBuffers = {};      // name → ArrayBuffer (готовы после fetch)
+    let _buffers    = {};
+    let _rawBuffers = {};
     let _bgSource   = null;
     let _bgName     = null;
     let _muted      = false;
-    let _ctxReady   = false;   // true после первого жеста
+    let _ctxReady   = false;
     let _forcePause = false;
 
     try { _muted = localStorage.getItem('dj_muted') === 'true'; } catch (_) {}
-
-    // ── Фаза 1: fetch всех треков сразу при загрузке ─────────────
-    // Запускается немедленно, без жеста. Браузер разрешает fetch из
-    // фоновой вкладки — ресурсы скачиваются пока пользователь читает
-    // описание игры на странице Яндекс Игр.
 
     function _fetchAll() {
         Object.entries(AUDIO_CONFIG).forEach(([name, cfg]) => {
@@ -49,8 +30,6 @@ const Audio = (() => {
         });
     }
 
-    // ── Фаза 2: decode всех треков после первого жеста ───────────
-
     function _ensureCtx() {
         if (_ctx) return;
         _ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -59,7 +38,6 @@ const Audio = (() => {
         _masterGain.connect(_ctx.destination);
     }
 
-    // Декодирует один трек. Если raw ещё не скачан — ждёт через fetch.
     function _decode(name) {
         if (_buffers[name]) return Promise.resolve(_buffers[name]);
 
@@ -80,8 +58,6 @@ const Audio = (() => {
             _decode(name).catch(() => {});
         });
     }
-
-    // ── Воспроизведение ──────────────────────────────────────────
 
     function _stopBg() {
         if (_bgSource) {
@@ -108,11 +84,6 @@ const Audio = (() => {
         _bgSource = src;
     }
 
-    // ── Публичный API ─────────────────────────────────────────────
-
-    // Вызывается после первого жеста. Создаёт AudioContext и декодирует
-    // все треки которые уже успели скачаться (обычно все — прошло время
-    // пока пользователь смотрел на экран загрузки).
     function init() {
         if (_ctxReady) return;
         _ctxReady = true;
@@ -124,19 +95,20 @@ const Audio = (() => {
         }
     }
 
+    // останавливаем текущий трек немедленно, не ждём декодирования нового.
+    // это убирает задержку при переключении menu→game: меню глохнет сразу,
+    // игровой трек стартует как только буфер готов.
     function switchTo(name) {
         _bgName = name;
         if (!_ctxReady || _forcePause) return;
 
+        _stopBg(); // немедленно — независимо от готовности нового буфера
+
         if (_buffers[name]) {
-            _stopBg();
             _playBgBuffer(name, _buffers[name]);
         } else {
-            // декодирование ещё идёт — не останавливаем текущий трек,
-            // переключаем когда буфер готов
             _decode(name).then(buf => {
                 if (_bgName !== name) return;
-                _stopBg();
                 _playBgBuffer(name, buf);
             }).catch(() => {});
         }
@@ -202,7 +174,6 @@ const Audio = (() => {
 
     function isMuted() { return _muted; }
 
-    // запускаем fetch немедленно при загрузке модуля
     _fetchAll();
 
     return {
@@ -212,11 +183,9 @@ const Audio = (() => {
     };
 })();
 
-// переключение вкладки
 document.addEventListener('visibilitychange', () => {
     document.hidden ? Audio.systemPause() : Audio.systemResume();
 });
 
-// потеря фокуса окна
 window.addEventListener('blur',  () => Audio.systemPause());
 window.addEventListener('focus', () => Audio.systemResume());

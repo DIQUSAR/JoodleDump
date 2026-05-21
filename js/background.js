@@ -1,5 +1,7 @@
+// onload может сработать синхронно из кэша браузера — до canvas.js.
+// drawMenuBackground вызывается только из screen_menu.js после полной инициализации,
+// поэтому onload здесь не нужен.
 const _menuBgImg = new Image();
-_menuBgImg.onload = () => drawMenuBackground();
 _menuBgImg.src = 'img/background.jpg';
 
 function drawMenuBackground() {
@@ -15,9 +17,8 @@ function drawBackground() {
     ctx.fillStyle = '#f8f8f2';
     ctx.fillRect(0, 0, W, H);
 
-    const oy = ((cameraY * 0.18) % GRID + GRID) % GRID;
+    const oy = ((GameState.cameraY * 0.18) % GRID + GRID) % GRID;
 
-    // Вертикальные линии — один path, один stroke()
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(180, 200, 230, 0.55)';
     ctx.lineWidth   = 0.6;
@@ -27,7 +28,6 @@ function drawBackground() {
     }
     ctx.stroke();
 
-    // Горизонтальные minor — один path, один stroke()
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(180, 200, 230, 0.45)';
     ctx.lineWidth   = 0.5;
@@ -38,7 +38,6 @@ function drawBackground() {
     }
     ctx.stroke();
 
-    // Горизонтальные major — один path, один stroke()
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(180, 200, 230, 0.45)';
     ctx.lineWidth   = 0.8;
@@ -49,7 +48,6 @@ function drawBackground() {
     }
     ctx.stroke();
 
-    // Красная вертикальная линия
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(220, 80, 80, 0.35)';
     ctx.lineWidth   = 1.0;

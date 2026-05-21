@@ -1,11 +1,4 @@
 // алмазы в воздухе
-//
-// DIAMOND_CFG — единственное место для настройки.
-//
-// imgSrc: null                 → встроенный геометрический рендер
-// imgSrc: 'img/diamond.png'   → своя PNG
-//
-// collectSfx: ключ из AUDIO_CONFIG в audio.js
 
 const DIAMOND_CFG = {
     spawnChance:  0.02,
@@ -16,27 +9,25 @@ const DIAMOND_CFG = {
     uiIcon:       '<img src="img/diamond.png" style="width:24px;height:24px;vertical-align:middle">',
 };
 
-// загрузчик спрайта (ленивый)
 const DiamondSprite = (() => {
-    let _img   = null;
-    let _ready = false;
+    let _img = null;
 
     function load(src) {
         if (!src || _img) return;
         _img = new Image();
-        _img.onload  = () => { _ready = true; };
         _img.onerror = () => { console.warn('[Diamond] не удалось загрузить:', src); };
         _img.src = src;
     }
 
-    function get() { return _ready ? _img : null; }
+    // img.complete истинно сразу если ресурс уже в кэше браузера —
+    // не зависит от того сработал ли onload
+    function get() { return (_img && _img.complete && _img.naturalWidth > 0) ? _img : null; }
 
     return { load, get };
 })();
 
-if (DIAMOND_CFG.imgSrc) DiamondSprite.load(DIAMOND_CFG.imgSrc);
+DiamondSprite.load(DIAMOND_CFG.imgSrc);
 
-// встроенный рендер
 function _drawBuiltinDiamond(ctx, x, y, size, alpha) {
     const s = size;
     ctx.save();
@@ -70,12 +61,10 @@ function _drawBuiltinDiamond(ctx, x, y, size, alpha) {
 
 const Diamonds = (() => {
 
-    // reset вызывается из startGame и _revivePlayer
     function reset() {
         GameState.diamonds = [];
     }
 
-    // спавн между двумя платформами при генерации новой
     function spawnBetween(newPlat) {
         const baseChance  = DIAMOND_CFG.spawnChance + Passives.getSpawnBonus();
         const totalChance = baseChance * Actives.getDiamondMultiplier();
@@ -106,12 +95,10 @@ const Diamonds = (() => {
         });
     }
 
-    // обновление позиций и коллизия с игроком
-    // tickTime — performance.now() / 1000, передаётся из loop
     function update(tickTime) {
-        const { player, diamonds, cameraY } = GameState;
-        const px    = player.x + player.w / 2;
-        const py    = player.y + player.h / 2;
+        const { player, diamonds } = GameState;
+        const px = player.x + player.w / 2;
+        const py = player.y + player.h / 2;
 
         for (let i = diamonds.length - 1; i >= 0; i--) {
             if (diamonds[i].alpha <= 0) { diamonds.splice(i, 1); }
@@ -132,18 +119,19 @@ const Diamonds = (() => {
                 d.collected = true;
                 const doubleChance = Passives.getDoubleChance() * Actives.getDoubleMultiplier();
                 const isDouble     = Math.random() < doubleChance;
-                const reward       = isDouble ? 2 : 1;
-                Currency.add(reward);
+                Currency.add(isDouble ? 2 : 1);
                 Audio.playSfx(DIAMOND_CFG.collectSfx);
                 spawnParticles(d.x, d.y, '#5b8dee');
-                const popupImg  = DiamondSprite.get();
-                const popupText = isDouble ? '+2' : '+1';
-                spawnPopup(d.x, d.y - 14, popupText, isDouble ? '#f5a623' : '#3a6bd4', popupImg);
+                spawnPopup(
+                    d.x, d.y - 14,
+                    isDouble ? '+2' : '+1',
+                    isDouble ? '#f5a623' : '#3a6bd4',
+                    DIAMOND_CFG.imgSrc
+                );
             }
         }
     }
 
-    // отрисовка
     function draw(tickTime) {
         const { diamonds } = GameState;
         const img = DiamondSprite.get();
@@ -151,23 +139,20 @@ const Diamonds = (() => {
         for (const d of diamonds) {
             if (d.alpha <= 0) continue;
             const bobY = Math.sin(tickTime * 2 + d.bobOffset) * 3;
-            if (img) {
-                const half = DIAMOND_CFG.size;
-                ctx.save();
-                ctx.globalAlpha = d.alpha;
-                ctx.drawImage(img, d.x - half, d.y + bobY - half, half * 2, half * 2);
-                ctx.restore();
-            } else {
-                _drawBuiltinDiamond(ctx, d.x, d.y + bobY, DIAMOND_CFG.size, d.alpha);
-            }
+            if (!img) continue; // спрайт ещё грузится — не рисуем геометрию
+            const half = DIAMOND_CFG.size;
+            ctx.save();
+            ctx.globalAlpha = d.alpha;
+            ctx.drawImage(img, d.x - half, d.y + bobY - half, half * 2, half * 2);
+            ctx.restore();
         }
     }
 
     return { reset, spawnBetween, update, draw };
 })();
 
-// обратная совместимость — функции которые вызываются снаружи до рефакторинга остальных модулей
-function resetDiamonds()            { Diamonds.reset(); }
-function spawnDiamondBetween(plat)  { Diamonds.spawnBetween(plat); }
-function updateDiamonds()           { Diamonds.update(_tickTime); }
-function drawDiamonds()             { Diamonds.draw(_tickTime); }
+// обратная совместимость
+function resetDiamonds()           { Diamonds.reset(); }
+function spawnDiamondBetween(plat) { Diamonds.spawnBetween(plat); }
+function updateDiamonds()          { Diamonds.update(GameState.tickTime); }
+function drawDiamonds()            { Diamonds.draw(GameState.tickTime); }
