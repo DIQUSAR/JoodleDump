@@ -1,4 +1,4 @@
-// ФИЗИКА И ЛОГИКА ОБНОВЛЕНИЯ
+// физика и логика обновления
 function update() {
 
     applyGyroToKeys();
@@ -106,12 +106,15 @@ function update() {
     // камера
     const screenPlayerY = player.y - cameraY;
     if (screenPlayerY < H * 0.38) {
-        cameraY -= (H * 0.38 - screenPlayerY);
-        score = Math.max(score, (-cameraY / 10) | 0);
-        scoreEl.textContent = score;
-        if (score > highScore) {
-            highScore = score;
-            highEl.textContent = I18n.t('highScore') + highScore;
+        GameState.cameraY -= (H * 0.38 - screenPlayerY);
+        const newScore = Math.max(score, (-cameraY / 10) | 0);
+        if (newScore !== GameState.score) {
+            GameState.score = newScore;
+            HUD.setScore(newScore);
+        }
+        if (newScore > GameState.highScore) {
+            GameState.highScore = newScore;
+            HUD.setHigh(newScore);
         }
     }
 
@@ -119,7 +122,7 @@ function update() {
 
     // смерть
     if (player.y - cameraY > H + 80) {
-        state = 'dead';
+        setPhase('dead');
         showGameOver();
     }
 }

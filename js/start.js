@@ -1,10 +1,7 @@
-// УПРАВЛЕНИЕ СОСТОЯНИЯМИ ИГРЫ
+// управление состояниями игры
 
-// Синхронизировать текст кнопки звука
-// Делегируем обновление кнопки звука в ui_config
 function _syncMuteBtn(btn) { updateMuteBtnUI(btn); }
 
-// HTML блока схем управления
 function _ctrlSchemeHTML() {
     const s = ctrlScheme;
     return `
@@ -39,45 +36,22 @@ async function _bindCtrlScheme() {
 const pauseBtn    = document.getElementById('pauseBtn');
 const pauseScreen = document.getElementById('pauseScreen');
 
-function _hideHUD() {
-    scoreEl.style.display   = 'none';
-    highEl.style.display    = 'none';
-    diamondEl.style.display = 'none';
-}
-
-function _showHUD() {
-    scoreEl.style.display   = '';
-    highEl.style.display    = '';
-    diamondEl.style.display = '';
-    diamondEl.innerHTML     = DIAMOND_CFG.uiIcon + ' ' + Currency.get();
-}
-
-// Инициализация статического UI (первый запуск страницы)
 function initStaticUI() {
-    // Живое обновление HUD-баланса при каждом изменении валюты
-    Currency.onChange(balance => {
-        if (diamondEl.style.display !== 'none') {
-            diamondEl.innerHTML = DIAMOND_CFG.uiIcon + ' ' + balance;
-        }
-    });
-
-    // Применить конфиг к статичным элементам (#pauseBtn, #controls и др.)
+    HUD.init();
     applyUIConfig(document);
-
     showMenu();
 }
 
-// Главное меню
 function updateMenuRecord() {
     const el = document.getElementById('menuRecord');
-    if (el) el.textContent = '🏆 ' + I18n.t('highScore') + ' ' + highScore;
+    if (el) el.textContent = '🏆 ' + I18n.t('highScore') + ' ' + GameState.highScore;
 }
 
 function showMenu() {
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null;
-    _loopRunning = false;
-    state = 'idle';
+    GameState.loopRunning = false;
+    setPhase('idle');
 
     SDK.Gameplay.stop();
 
@@ -87,10 +61,7 @@ function showMenu() {
     drawMenuBackground();
     overlay.style.display     = 'flex';
 
-    _hideHUD();
-
-    // Рекорд показываем ВНУТРИ overlay, прямо над кнопкой Старт
-    const recordHTML = `<p class="menu-record" id="menuRecord"> ${I18n.t('highScore')} ${highScore}</p>`;
+    HUD.hide();
 
     overlay.innerHTML = `
         <h1>${I18n.t('title').replace('\n','<br>')}</h1>
@@ -101,7 +72,7 @@ function showMenu() {
             <div class="li"><div class="ld" style="background:#2196f3;"></div>${I18n.t('platMoving')}</div>
         </div>
         ${_ctrlSchemeHTML()}
-        ${recordHTML}
+        <p class="menu-record" id="menuRecord"> ${I18n.t('highScore')} ${GameState.highScore}</p>
         <button id="startBtn"  class="menu-btn">${I18n.t('btnStart')}</button>
         <button id="shopBtn"   class="menu-btn">${I18n.t('btnShop')}</button>
         <button id="lbBtn"       class="menu-btn">${I18n.t('btnLeaderboard')}</button>
@@ -116,61 +87,53 @@ function showMenu() {
     _bindCtrlScheme();
     applyUIConfig(overlay);
 
-
     Audio.systemResume();
     Audio.switchToIfNeeded('menu');
-
-    // сигналим SDK что игра готова — меню отрисовано, пользователь может взаимодействовать
     SDK.notifyReady();
 }
 
-// Старт игры
 function startGame() {
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null;
-    _loopRunning = false;
+    GameState.loopRunning = false;
 
-    player    = makePlayer();
-    player.vy = JUMP_V;
-    score     = 0;
-    cameraY   = 0;
-    particles = [];
-    popups    = [];
+    setState({
+        player:    makePlayer(),
+        score:     0,
+        cameraY:   0,
+        particles: [],
+        popups:    [],
+        keys:      { left: false, right: false },
+    });
+    GameState.player.vy = JUMP_V;
     resetDiamonds();
-    keys      = { left: false, right: false };
 
     Audio.forceResume();
-    // forceResume сбрасывает _forcePause если браузер послал blur
-    // прямо перед рестартом (тап по кнопке = blur + click на мобильных).
-    // Без этого switchTo молча выходит и весь звук пропадает.
     Audio.switchTo('game');
-    Leaderboard.resetRound(); // сброс флага отправки результата
+    Leaderboard.resetRound();
 
     spawnInitialPlatforms();
 
-    state = 'playing';
+    setPhase('playing');
     overlay.style.display     = 'none';
     pauseScreen.style.display = 'none';
     ctrlDiv.style.display     = ctrlScheme === 'screen' ? 'flex' : 'none';
     pauseBtn.style.display    = 'flex';
     updatePauseBtnUI(false);
 
-    // Показать HUD только во время игры
-    _showHUD();
-    scoreEl.textContent = '0';
-    highEl.textContent  = I18n.t('highScore') + highScore;
+    HUD.show();
+    HUD.setScore(0);
+    HUD.setHigh(GameState.highScore);
 
     SDK.Gameplay.start();
-
     loop();
 }
 
-// Пауза
 function pauseGame() {
-    if (state !== 'playing') return;
-    state = 'paused';
+    if (GameState.phase !== 'playing') return;
+    setPhase('paused');
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    _loopRunning = false;
+    GameState.loopRunning = false;
     Audio.pause();
     SDK.Gameplay.stop();
     updatePauseBtnUI(true);
@@ -194,10 +157,10 @@ function pauseGame() {
 }
 
 function resumeGame() {
-    if (state !== 'paused') return;
+    if (GameState.phase !== 'paused') return;
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    _loopRunning = false;
-    state = 'playing';
+    GameState.loopRunning = false;
+    setPhase('playing');
     pauseScreen.style.display = 'none';
     updatePauseBtnUI(false);
     Audio.play();
@@ -206,25 +169,22 @@ function resumeGame() {
 }
 
 pauseBtn.addEventListener('click', () => {
-    if (state === 'playing') pauseGame();
-    else if (state === 'paused') resumeGame();
+    if (GameState.phase === 'playing') pauseGame();
+    else if (GameState.phase === 'paused') resumeGame();
 });
 
-// Экран предложения возродиться за рекламу
 function _renderReviveOffer() {
     drawMenuBackground();
     overlay.style.display = 'flex';
-
     overlay.innerHTML = `
         <h1>${I18n.t('deathTitle')}</h1>
         <p class="sub" style="font-size:18px;color:#444;margin:4px 0 16px;">
-            ${I18n.t('scoreLabel')}<b>${score}</b>
+            ${I18n.t('scoreLabel')}<b>${GameState.score}</b>
         </p>
         <p id="reviveOfferText" style="font-size:15px;color:#555;margin-bottom:16px;">${I18n.t('reviveOffer')}</p>
         <div><button id="btnRevive" class="menu-btn">${I18n.t('btnRevive')}</button></div>
         <div><button id="btnSkipRevive" class="menu-btn">${I18n.t('btnSkipRevive')}</button></div>
     `;
-
     document.getElementById('btnRevive').addEventListener('click', () => {
         let rewarded = false;
         Adv.showRewarded({
@@ -236,77 +196,65 @@ function _renderReviveOffer() {
     applyUIConfig(overlay);
 }
 
-// Возрождение игрока на сохранённой точке
 function _revivePlayer() {
-    if (!reviveSavePoint) { startGame(); return; }
+    if (!GameState.reviveSavePoint) { startGame(); return; }
 
-    // Восстанавливаем позицию игрока
-    player    = makePlayer();
-    player.x  = reviveSavePoint.x;
-    player.y  = reviveSavePoint.y;
-    player.vy = JUMP_V;  // импульс вверх сразу после возрождения
-    player.vx = 0;
-    cameraY   = reviveSavePoint.cameraY;
+    const sp = GameState.reviveSavePoint;
+    const p  = makePlayer();
+    p.x  = sp.x;
+    p.y  = sp.y;
+    p.vy = JUMP_V;
+    p.vx = 0;
 
-    // Перестройка платформ вокруг точки возрождения
-    const safeX = Math.min(Math.max(player.x - 31, 0), W - 62);
-    const safeY = player.y + 40; // чуть ниже ног
+    setState({ player: p, cameraY: sp.cameraY, reviveSavePoint: null });
 
-    // Сбрасываем все старые платформы и генерируем новые от точки возрождения вверх
-    platforms = [];
+    const safeX = Math.min(Math.max(p.x - 31, 0), W - 62);
+    const safeY = p.y + 40;
+
+    GameState.platforms = [];
     lastGenType = 'normal';
     resetDiamonds();
 
-    // Опорная платформа под игроком — всегда normal
     platforms.push(makePlatform(safeX, safeY, 'normal'));
-
     let py = safeY;
     for (let i = 0; i < 14; i++) {
         py -= 70 + Math.random() * 55;
-        platforms.push(makePlatform(
-            Math.random() * (W - 70),
-            py,
-            pickType(score)
-        ));
+        platforms.push(makePlatform(Math.random() * (W - 70), py, pickType(GameState.score)));
     }
-
-    reviveSavePoint = null;  // одноразовое возрождение
 
     Audio.systemResume();
     Audio.switchToIfNeeded('game');
 
-    _loopRunning = false;
-    state = 'playing';
+    GameState.loopRunning = false;
+    setPhase('playing');
     overlay.style.display     = 'none';
     pauseScreen.style.display = 'none';
     ctrlDiv.style.display     = ctrlScheme === 'screen' ? 'flex' : 'none';
     pauseBtn.style.display    = 'flex';
     updatePauseBtnUI(false);
 
-    _showHUD();
-    scoreEl.textContent = score;
-    highEl.textContent  = I18n.t('highScore') + highScore;
+    HUD.show();
+    HUD.setScore(GameState.score);
+    HUD.setHigh(GameState.highScore);
 
     SDK.Gameplay.start();
-
     loop();
 }
 
-// Рисует экран результата — вызывается после рекламы (или сразу если SDK нет)
 function _renderGameOver() {
-    // Обновить локальный рекорд и сохранить в localStorage
+    const { score, highScore } = GameState;
     if (score > highScore) {
-        highScore = score;
-        try { localStorage.setItem('dj_highscore', highScore); } catch (_) {}
+        GameState.highScore = score;
+        try { localStorage.setItem('dj_highscore', score); } catch (_) {}
         if (typeof YandexSync !== 'undefined') YandexSync.save();
     }
 
-    Leaderboard.setScore(highScore);
+    Leaderboard.setScore(GameState.highScore);
 
     drawMenuBackground();
     overlay.style.display = 'flex';
 
-    const isRecord = score > 0 && score >= highScore;
+    const isRecord = score > 0 && score >= GameState.highScore;
     overlay.innerHTML = `
         <h1>${I18n.t('deathTitle')}</h1>
         <p class="sub" style="font-size:20px;color:#444;">
@@ -324,7 +272,6 @@ function _renderGameOver() {
     applyUIConfig(overlay);
 }
 
-// Экран смерти
 function showGameOver() {
     SDK.Gameplay.stop();
     Audio.systemPause();
@@ -332,19 +279,19 @@ function showGameOver() {
     ctrlDiv.style.display     = 'none';
     pauseBtn.style.display    = 'none';
     pauseScreen.style.display = 'none';
-    _hideHUD();
+    HUD.hide();
 
-    // Сохраняем точку возрождения прямо в момент смерти.
-    reviveSavePoint = {
-        x:       player.x,
-        y:       player.y - 60,
-        cameraY: cameraY,
-    };
+    setState({
+        reviveSavePoint: {
+            x:       GameState.player.x,
+            y:       GameState.player.y - 60,
+            cameraY: GameState.cameraY,
+        },
+    });
 
     _renderReviveOffer();
 }
 
-// Экран лидерборда
 function showLeaderboard() {
     drawMenuBackground();
     overlay.innerHTML = `
@@ -362,7 +309,6 @@ function showLeaderboard() {
     applyUIConfig(overlay);
 }
 
-// Экран настроек
 function showSettings() {
     drawMenuBackground();
     overlay.innerHTML = `
@@ -378,9 +324,7 @@ function showSettings() {
             </div>
         </div>
     `;
-
     updateMuteBtnUI(document.getElementById('settingsMuteBtn'));
-
     document.getElementById('settingsMuteBtn').addEventListener('click', () => {
         Audio.init();
         Audio.toggleMute();
@@ -396,14 +340,8 @@ function showSettings() {
 
 initStaticUI();
 
-// Музыка после закрытия рекламы/потери фокуса возобновляется
-// только если идёт геймплей — не на паузе и не в меню.
-Audio.setResumeGuard(() => state === 'playing');
+Audio.setResumeGuard(() => GameState.phase === 'playing');
 
-// Синхронизация прогресса с Яндекс облаком.
-// Вызываем после initStaticUI, чтобы все модули (Currency, Passives, Shop)
-// уже были в памяти с локальными данными — тогда mergeLevels/mergeOwned
-// корректно сравнивают облачные данные с текущими.
 YandexSync.init();
 
 async function initSdkAudioEvents() {
@@ -413,7 +351,5 @@ async function initSdkAudioEvents() {
     sdk.on('popup_closed', () => Audio.systemResume());
 }
 initSdkAudioEvents();
-I18n.initFromSDK();      // подхватить язык из SDK после его загрузки
-Leaderboard.syncHighScore(); // подтянуть рекорд с сервера
-
-
+I18n.initFromSDK();
+Leaderboard.syncHighScore();
