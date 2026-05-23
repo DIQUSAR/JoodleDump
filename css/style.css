@@ -43,13 +43,19 @@ body {
     overflow: hidden;
     box-shadow: 5px 5px 0 #c0c0c0;
     flex-shrink: 0;
+    background: #f8f8f2; /* fallback пока canvas не нарисован */
+}
+
+body.dark #gameWrapper {
+    background: #1a1a2a;
 }
 /* Игровое поле */
 #gameCanvas {
     display: block;
 }
-/* Счет */
+/* счёт */
 #scoreDisplay {
+    display: none;
     position: absolute;
     top: 12px; left: 14px;
     font-size: 20px;
@@ -58,8 +64,9 @@ body {
     pointer-events: none;
     text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
 }
-/* Рекорд */
+/* рекорд */
 #highScoreDisplay {
+    display: none;
     position: absolute;
     top: 40px; 
     left: 14px;
@@ -67,6 +74,16 @@ body {
     color: #888888;
     pointer-events: none;
     text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
+}
+
+/* тёмный режим — HUD */
+body.dark #scoreDisplay {
+    color: #f0f0f0;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5);
+}
+body.dark #highScoreDisplay {
+    color: #aaaaaa;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 /* Экран начала игры */
 #overlay {
@@ -423,31 +440,33 @@ body {
     border-collapse: collapse;
     font-family: inherit;
     font-size: 14px;
+    table-layout: fixed;
 }
 
 .lb-table th {
-    text-align: left;
-    padding: 4px 8px;
+    text-align: center;
+    padding: 6px 8px;
     border-bottom: 2px solid #ddd;
     color: #888;
     font-weight: 600;
 }
 
 .lb-table td {
-    padding: 6px 8px;
+    padding: 7px 8px;
     border-bottom: 1px solid #eee;
+    text-align: center;
 }
 
-/* Строка текущего игрока */
+/* строка текущего игрока */
 .lb-table tr.lb-me td {
     background: rgba(92, 184, 92, 0.15);
     font-weight: 700;
     color: #2d7a2d;
 }
 
-.lb-rank  { width: 32px; color: #aaa; text-align: center; }
-.lb-score { text-align: right; font-weight: 700; color: #333; }
-.lb-name  { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-rank  { width: 36px; color: #aaa; text-align: center; }
+.lb-name  { text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-score { width: 60px; text-align: center; font-weight: 700; color: #333; }
 
 /* Кнопка лидерборда в меню */
 .menu-btn-lb {
@@ -686,6 +705,7 @@ body {
 
 /* HUD алмазов в игре, под рекордом */
 #diamondDisplay {
+    display: none;
     position: absolute;
     top: 58px;
     left: 14px;
@@ -694,6 +714,12 @@ body {
     color: #5b8dee;
     pointer-events: none;
     text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
+}
+
+/* тёмный режим */
+body.dark #diamondDisplay {
+    color: #7aaeff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 
 /* Алмазы в шапке магазина */
@@ -990,4 +1016,41 @@ body {
 @keyframes fever-pulse {
     from { transform: scale(1);    filter: none; }
     to   { transform: scale(1.2); filter: drop-shadow(0 0 4px #f5a623); }
+}
+
+/* loading screen */
+#loadingScreen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f8f2;
+    z-index: 10;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    color: #3a3a3a;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+}
+
+body.dark #loadingScreen {
+    background: #1a1a2a;
+    color: #d0d0d0;
+}
+
+.loading-dots span {
+    display: inline-block;
+    animation: loading-blink 1.2s infinite;
+    opacity: 0;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.3s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes loading-blink {
+    0%, 100% { opacity: 0; }
+    40%       { opacity: 1; }
 }
