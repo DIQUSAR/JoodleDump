@@ -82,7 +82,13 @@ pauseBtn.addEventListener('click', () => {
     else if (GameState.phase === 'paused') resumeGame();
 });
 
-initStaticUI();
+// инициализируем UI только после того, как SDK готов
+// это гарантирует что notifyReady() в showMenu() вызовется уже после resolve
+window.yandexSDKPromise.then(() => {
+    const el = document.getElementById('loadingScreen');
+    if (el) el.style.display = 'none';
+    initStaticUI();
+});
 
 Audio.setResumeGuard(() => GameState.phase === 'playing');
 

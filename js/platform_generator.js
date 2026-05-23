@@ -14,7 +14,7 @@ const MOVING_CFG = {
     MAX_SPD:           3.0,
     REVERSE_THRESHOLD: 900,
     REVERSE_CHANCE:    0.35,
-    REVERSE_INTERVAL:  [60, 180],
+    REVERSE_INTERVAL:  [60, 120],
 };
 
 function _interpolateWeights(score) {

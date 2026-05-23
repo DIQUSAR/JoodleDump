@@ -23,7 +23,7 @@ const ACTIVE_DEFS = {
         adIcon:       '',       // иконка кнопки "смотреть рекламу"
         costDiamonds: 50,
         durationSec:  5  * 60, // 5 минут
-        cooldownSec:  10 * 60, // 10 минут кд
+        cooldownSec:  5  * 60, // 5 минут кд
         multiplier:   3, // Во сколько раз увеличить шанс
     },
 
@@ -35,7 +35,7 @@ const ACTIVE_DEFS = {
         adIcon:       '',
         costDiamonds: 100,
         durationSec:  5  * 60, // 5 минут
-        cooldownSec:  25 * 60, // 25 минут кд
+        cooldownSec:  5  * 60, // 5 минут кд
         multiplier:   3, // Во сколько раз увеличить шанс
     },
 

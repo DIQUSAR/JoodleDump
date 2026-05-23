@@ -1,8 +1,25 @@
-// onload может сработать синхронно из кэша браузера — до canvas.js.
-// drawMenuBackground вызывается только из screen_menu.js после полной инициализации,
-// поэтому onload здесь не нужен.
+// notebook-style background renderer
+// supports light and dark modes via Theme.isDark()
+
+const BG_LIGHT = {
+    fill:        '#f8f8f2',
+    lineV:       'rgba(180, 200, 230, 0.55)',
+    lineH:       'rgba(180, 200, 230, 0.45)',
+    lineHBold:   'rgba(180, 200, 230, 0.45)',
+    lineRed:     'rgba(220, 80, 80, 0.35)',
+};
+
+const BG_DARK = {
+    fill:        '#1a1a2a',
+    lineV:       'rgba(80, 100, 150, 0.45)',
+    lineH:       'rgba(80, 100, 150, 0.35)',
+    lineHBold:   'rgba(80, 100, 150, 0.45)',
+    lineRed:     'rgba(180, 60, 60, 0.35)',
+};
+
 const _menuBgImg = new Image();
 _menuBgImg.src = 'img/background.jpg';
+
 
 function drawMenuBackground() {
     if (_menuBgImg.complete && _menuBgImg.naturalWidth > 0) {
@@ -14,13 +31,15 @@ function drawMenuBackground() {
 }
 
 function drawBackground() {
-    ctx.fillStyle = '#f8f8f2';
+    const c = Theme.isDark() ? BG_DARK : BG_LIGHT;
+
+    ctx.fillStyle = c.fill;
     ctx.fillRect(0, 0, W, H);
 
     const oy = ((GameState.cameraY * 0.18) % GRID + GRID) % GRID;
 
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(180, 200, 230, 0.55)';
+    ctx.strokeStyle = c.lineV;
     ctx.lineWidth   = 0.6;
     for (let x = 0; x <= W; x += GRID) {
         ctx.moveTo(x, 0);
@@ -29,7 +48,7 @@ function drawBackground() {
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(180, 200, 230, 0.45)';
+    ctx.strokeStyle = c.lineH;
     ctx.lineWidth   = 0.5;
     for (let y = -GRID + oy; y <= H; y += GRID) {
         if (Math.round((y - oy) / GRID) % 4 === 0) continue;
@@ -39,7 +58,7 @@ function drawBackground() {
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(180, 200, 230, 0.45)';
+    ctx.strokeStyle = c.lineHBold;
     ctx.lineWidth   = 0.8;
     for (let y = -GRID + oy; y <= H; y += GRID) {
         if (Math.round((y - oy) / GRID) % 4 !== 0) continue;
@@ -49,7 +68,7 @@ function drawBackground() {
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(220, 80, 80, 0.35)';
+    ctx.strokeStyle = c.lineRed;
     ctx.lineWidth   = 1.0;
     ctx.moveTo(40, 0);
     ctx.lineTo(40, H);

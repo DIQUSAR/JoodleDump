@@ -25,9 +25,9 @@ const HUD = (() => {
     }
 
     function show() {
-        _els.score.style.display   = '';
-        _els.high.style.display    = '';
-        _els.diamond.style.display = '';
+        _els.score.style.display   = 'block';
+        _els.high.style.display    = 'block';
+        _els.diamond.style.display = 'block';
     }
 
     function hide() {
@@ -38,6 +38,8 @@ const HUD = (() => {
 
     // подписка на изменение баланса — вызывается из initStaticUI
     function init() {
+        hide();
+        setBalance(Currency.get());
         Currency.onChange(setBalance);
     }
 

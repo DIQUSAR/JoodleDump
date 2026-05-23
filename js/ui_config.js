@@ -53,9 +53,10 @@ const UI_CONFIG = {
     // ФОН
     // Картинка за пределами игрового экрана
     background: {
-        src:      'img/JoodleDump.png',   // null = цвет из CSS (body background)
-        size:     'cover',                 // 'cover' | 'contain' | 'repeat' | 'auto'
-        position: 'center',               // 'center' | 'top left' | '50% 20%' | ...
+        src:      'img/JoodleDump.png',     // null = цвет из CSS (body background)
+        srcDark:  'img/JoodleDumpDark.png', // фон в тёмном режиме
+        size:     'cover',                   // 'cover' | 'contain' | 'repeat' | 'auto'
+        position: 'center',                  // 'center' | 'top left' | '50% 20%' | ...
     },
 
     // КНОПКА ПАУЗЫ два состояния
@@ -384,13 +385,20 @@ function I18n_t(key) {
 
 function _applyBackground() {
     const cfg = UI_CONFIG.background;
-    if (!cfg || !cfg.src) return;
-    document.body.style.backgroundImage      = `url('${cfg.src}')`;
+    if (!cfg) return;
+    const src = (typeof Theme !== 'undefined' && Theme.isDark() && cfg.srcDark)
+        ? cfg.srcDark
+        : cfg.src;
+    if (!src) return;
+    document.body.style.backgroundImage      = `url('${src}')`;
     document.body.style.backgroundSize       = cfg.size     || 'cover';
     document.body.style.backgroundPosition   = cfg.position || 'center';
     document.body.style.backgroundRepeat     = 'no-repeat';
     document.body.style.backgroundAttachment = 'fixed';
 }
+
+// вызывается из theme.js после toggle, чтобы сменить фон body
+function applyBodyBackground() { _applyBackground(); }
 
 function _buildIconHTML(iconCfg) {
     if (!iconCfg || !iconCfg.src) return null;

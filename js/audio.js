@@ -13,11 +13,13 @@ const Audio = (() => {
     let _masterGain = null;
     let _buffers    = {};
     let _rawBuffers = {};
-    let _bgSource   = null;
-    let _bgName     = null;
-    let _muted      = false;
-    let _ctxReady   = false;
-    let _forcePause = false;
+    let _bgSource    = null;
+    let _bgName      = null;
+    let _muted       = false;
+    let _ctxReady    = false;
+    let _forcePause  = false;
+    let _pauseOffset = 0;   // позиция трека в момент паузы (сек)
+    let _pauseStart  = 0;   // ctx.currentTime в момент старта source
 
     try { _muted = localStorage.getItem('dj_muted') === 'true'; } catch (_) {}
 
@@ -67,7 +69,7 @@ const Audio = (() => {
         }
     }
 
-    function _playBgBuffer(name, buffer) {
+    function _playBgBuffer(name, buffer, offset = 0) {
         if (_forcePause || _bgName !== name) return;
         _stopBg();
 
@@ -80,7 +82,11 @@ const Audio = (() => {
         src.buffer = buffer;
         src.loop   = true;
         src.connect(gainNode);
-        src.start(0);
+        // offset по длине буфера чтобы не выйти за пределы
+        const safeOffset = buffer.duration > 0 ? offset % buffer.duration : 0;
+        src.start(0, safeOffset);
+        _pauseStart = _ctx.currentTime;
+        _pauseOffset = safeOffset;
         _bgSource = src;
     }
 
@@ -100,6 +106,8 @@ const Audio = (() => {
     // игровой трек стартует как только буфер готов.
     function switchTo(name) {
         _bgName = name;
+        _pauseOffset = 0;
+        _pauseStart  = 0;
         if (!_ctxReady || _forcePause) return;
 
         _stopBg(); // немедленно — независимо от готовности нового буфера
@@ -138,10 +146,16 @@ const Audio = (() => {
     function play() {
         if (!_ctxReady || !_bgName || _forcePause) return;
         if (_bgSource) return;
-        _decode(_bgName).then(buf => _playBgBuffer(_bgName, buf)).catch(() => {});
+        const offset = _pauseOffset;
+        _decode(_bgName).then(buf => _playBgBuffer(_bgName, buf, offset)).catch(() => {});
     }
 
-    function pause() { _stopBg(); }
+    function pause() {
+        if (_bgSource && _ctx) {
+            _pauseOffset = (_pauseOffset + _ctx.currentTime - _pauseStart) % ((_bgSource.buffer?.duration || 1));
+        }
+        _stopBg();
+    }
 
     function systemPause() {
         _forcePause = true;

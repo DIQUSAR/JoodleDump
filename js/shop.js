@@ -14,11 +14,11 @@ const Shop = (() => {
         dood:         { labelKey: 'skinDood',    price: null },
         dood_blue:    { labelKey: 'skinBlue',    price: 50   },
         dood_red:     { labelKey: 'skinRed',     price: 100  },
-        dood_gold:    { labelKey: 'skinGold',    price: 200  },
-        dood_diamond: { labelKey: 'skinDiamond', price: 250  },
-        dood_ruby:    { labelKey: 'skinRuby',    price: 500  },
-        dood_robo:    { labelKey: 'skinRobo',    price: 1000 },
-        dood_yandex:    { labelKey: 'skinYandex',    price: 2000 },
+        dood_gold:    { labelKey: 'skinGold',    price: 250  },
+        dood_diamond: { labelKey: 'skinDiamond', price: 1000  },
+        dood_ruby:    { labelKey: 'skinRuby',    price: 2500  },
+        dood_robo:    { labelKey: 'skinRobo',    price: 5000 },
+        dood_yandex:    { labelKey: 'skinYandex',    price: 10000 },
     };
 
     // Активные бусты рендерятся из Actives.DEFS
@@ -139,7 +139,7 @@ const Shop = (() => {
                     <button id="shopBack" class="shop-back-btn">✕</button>
                     <h2 class="shop-title"> ${I18n.t('shopTitle')}</h2>
                     <div class="shop-header-right">
-                        <button id="shopAdBtn" class="shop-ad-btn">+25${DIAMOND_CFG.uiIcon}</button>
+                        <button id="shopAdBtn" class="shop-ad-btn">+50${DIAMOND_CFG.uiIcon}</button>
                         <div class="shop-balance">${DIAMOND_CFG.uiIcon} ${bal}</div>
                     </div>
                 </div>
@@ -300,7 +300,7 @@ const Shop = (() => {
                 const btn = document.getElementById('shopAdBtn');
                 btn.disabled = true;
                 Adv.showRewarded({
-                    onRewarded: () => { Currency.add(25); },
+                    onRewarded: () => { Currency.add(50); },
                     onClose:    () => { _render(); },
                 });
             });

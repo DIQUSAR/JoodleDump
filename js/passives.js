@@ -36,8 +36,8 @@ const PASSIVE_DEFS = {
         descKey:     'passiveSuperJumpDesc',
         icon:        '🌀',
         maxLevel:    80,
-        baseCost:    5,
-        costStep:    5,
+        baseCost:    3,
+        costStep:    3,
         bonusPerLvl: 0.002,   // +0.2% шанс суперпрыжка за уровень
     },
 };
