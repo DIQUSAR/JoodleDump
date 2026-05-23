@@ -23,7 +23,7 @@ function pauseGame() {
     });
     document.getElementById('btnPauseMenu').addEventListener('click', () => {
         pauseScreen.style.display = 'none';
-        showMenu();
+        Adv.showFullscreen({ onClose: () => showMenu() });
     });
     applyUIConfig(pauseScreen);
 }

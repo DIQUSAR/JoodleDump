@@ -35,7 +35,7 @@ function showMenu() {
         <button id="shopBtn"     class="menu-btn">${I18n.t('btnShop')}</button>
         <button id="lbBtn"       class="menu-btn">${I18n.t('btnLeaderboard')}</button>
         <button id="settingsBtn" class="menu-btn">${I18n.t('btnSettings')}</button>
-        <div id="showversion" class="gameversion">v.1.5.5</div>
+        <div id="showversion" class="gameversion">v${CONFIG.VERSION}</div>
     `;
 
     document.getElementById('startBtn').addEventListener('click', () => { Audio.init(); startGame(); });

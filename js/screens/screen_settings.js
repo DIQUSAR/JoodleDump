@@ -1,4 +1,11 @@
-// экран настроек
+// settings screen
+
+function updateDarkBtnUI(btn) {
+    if (!btn) return;
+    const dark  = Theme.isDark();
+    const label = I18n_t(dark ? 'btnDarkOff' : 'btnDarkOn');
+    btn.textContent = label;
+}
 
 function showSettings() {
     drawMenuBackground();
@@ -11,15 +18,22 @@ function showSettings() {
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 16px 16px;">
                 <button id="settingsMuteBtn" class="menu-btn"></button>
+                <button id="settingsDarkBtn" class="menu-btn"></button>
                 <button id="settingsLangBtn" class="menu-btn">${I18n.t('langBtn')}</button>
             </div>
         </div>
     `;
     updateMuteBtnUI(document.getElementById('settingsMuteBtn'));
+    updateDarkBtnUI(document.getElementById('settingsDarkBtn'));
+
     document.getElementById('settingsMuteBtn').addEventListener('click', () => {
         Audio.init();
         Audio.toggleMute();
         updateMuteBtnUI(document.getElementById('settingsMuteBtn'));
+    });
+    document.getElementById('settingsDarkBtn').addEventListener('click', () => {
+        Theme.toggle();
+        updateDarkBtnUI(document.getElementById('settingsDarkBtn'));
     });
     document.getElementById('settingsLangBtn').addEventListener('click', () => {
         I18n.toggle();
