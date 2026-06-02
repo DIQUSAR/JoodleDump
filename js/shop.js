@@ -215,7 +215,7 @@ const Shop = (() => {
                 <div class="shop-card${isActive ? ' selected' : ''}${!owned ? ' shop-locked' : ''}" data-skin="${id}">
                     <div class="shop-card-preview">
                         <img src="${imgSrc}" alt="${I18n.t(meta.labelKey)}" draggable="false"${!owned ? ' style="opacity:0.35;filter:grayscale(1)"' : ''}>
-                        ${!owned ? '<div class="shop-lock-icon">🔒</div>' : ''}
+                        ${!owned ? '<div class="shop-lock-icon" data-lock-icon>🔒</div>' : ''}
                     </div>
                     <div class="shop-card-label">${I18n.t(meta.labelKey)}</div>
                     <div class="shop-card-status">${badge}</div>

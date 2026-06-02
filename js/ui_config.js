@@ -212,6 +212,16 @@ const UI_CONFIG = {
         '[data-ad-badge]': {
             icon: { src: 'img/revive.png', size: '12px', position: 'prefix', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
         },
+
+        // иконка замка на не купленных скинах в магазине
+        '[data-lock-icon]': {
+            icon: { src: 'img/lock.png', size: '28px', position: 'replace', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
+        },
+
+        // иконка перед текстом предложения возрождения (экран смерти)
+        '[data-revive-icon]': {
+            icon: { src: 'img/visibility.png', size: '20px', position: 'replace', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
+        },
     },
 };
 

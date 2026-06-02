@@ -92,7 +92,7 @@ const LOCALES = {
         skinFashion:       'Модный',
         skinMafia:       'Мафиозник',
         // Возрождение за рекламу
-        reviveOffer:    '👁 Смотри рекламу и продолжи с того же места!',
+        reviveOffer:    'Смотри рекламу и продолжи с того же места!',
         btnRevive:      'Возродиться',
         btnSkipRevive:  'Пропустить',
     },
@@ -187,7 +187,7 @@ const LOCALES = {
         skinFashion:       'Fashion',
         skinMafia:       'Mafia',
         // Revive for ad
-        reviveOffer:    '👁 Watch an ad and continue from the same spot!',
+        reviveOffer:    'Watch an ad and continue from the same spot!',
         btnRevive:      'Revive',
         btnSkipRevive:  'Skip',
     },
