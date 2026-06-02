@@ -2,7 +2,26 @@
 
 function updateMenuRecord() {
     const el = document.getElementById('menuRecord');
-    if (el) el.textContent = '🏆 ' + I18n.t('highScore') + ' ' + GameState.highScore;
+    if (!el) return;
+    // сохраняем иконку (img[data-ui-icon]) — обновляем только текстовый узел
+    const icon = el.querySelector('img[data-ui-icon]');
+    const text = I18n.t('highScore') + ' ' + GameState.highScore;
+    if (icon) {
+        // восстанавливаем структуру как после applyUIConfig: icon + gap + text
+        const gap = el.querySelector('span[style]');
+        el.innerHTML = icon.outerHTML + (gap ? gap.outerHTML : '') + text;
+    } else {
+        el.textContent = text;
+    }
+}
+
+function _startMenuMusic() {
+    try { Audio.init(); Audio.switchToIfNeeded('menu'); } catch (_) {}
+}
+
+// без init — безопасно вызывать до жеста пользователя
+function _resumeMenuMusic() {
+    try { Audio.switchToIfNeeded('menu'); } catch (_) {}
 }
 
 function showMenu() {
@@ -38,14 +57,14 @@ function showMenu() {
         <div id="showversion" class="gameversion">v${CONFIG.VERSION}</div>
     `;
 
-    document.getElementById('startBtn').addEventListener('click', () => { Audio.init(); startGame(); });
-    document.getElementById('shopBtn').addEventListener('click', () => Shop.show());
-    document.getElementById('lbBtn').addEventListener('click', showLeaderboard);
-    document.getElementById('settingsBtn').addEventListener('click', showSettings);
+    document.getElementById('startBtn').addEventListener('click', () => startGame());
+    document.getElementById('shopBtn').addEventListener('click', () => { _startMenuMusic(); Shop.show(); });
+    document.getElementById('lbBtn').addEventListener('click', () => { _startMenuMusic(); showLeaderboard(); });
+    document.getElementById('settingsBtn').addEventListener('click', () => { _startMenuMusic(); showSettings(); });
     _bindCtrlScheme();
     applyUIConfig(overlay);
 
     Audio.systemResume();
-    Audio.switchToIfNeeded('menu');
+    _resumeMenuMusic(); // без Audio.init() — безопасно без жеста
     SDK.notifyReady();
 }

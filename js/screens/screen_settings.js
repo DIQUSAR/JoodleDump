@@ -1,12 +1,3 @@
-// settings screen
-
-function updateDarkBtnUI(btn) {
-    if (!btn) return;
-    const dark  = Theme.isDark();
-    const label = I18n_t(dark ? 'btnDarkOff' : 'btnDarkOn');
-    btn.textContent = label;
-}
-
 function showSettings() {
     drawMenuBackground();
     overlay.innerHTML = `
@@ -33,6 +24,7 @@ function showSettings() {
     });
     document.getElementById('settingsDarkBtn').addEventListener('click', () => {
         Theme.toggle();
+        drawMenuBackground();
         updateDarkBtnUI(document.getElementById('settingsDarkBtn'));
     });
     document.getElementById('settingsLangBtn').addEventListener('click', () => {

@@ -15,7 +15,7 @@ function showReviveOffer() {
     document.getElementById('btnRevive').addEventListener('click', () => {
         let rewarded = false;
         Adv.showRewarded({
-            onRewarded: () => { rewarded = true; revivePlayer(); },
+            onRewarded: () => { rewarded = true; try { Shop.onAdWatched(); } catch (_) {} revivePlayer(); },
             onClose:    () => { if (!rewarded) showGameOverScreen(); },
         });
     });
@@ -26,31 +26,36 @@ function showReviveOffer() {
 function revivePlayer() {
     if (!GameState.reviveSavePoint) { startGame(); return; }
 
-    const sp = GameState.reviveSavePoint;
-    const p  = makePlayer();
-    p.x  = sp.x;
-    p.y  = sp.y;
+    // игрок и стартовая платформа всегда по центру
+    const platW  = 62;
+    const platX  = (W - platW) / 2;
+    const platY  = H * 0.65;
+    const playerX = W / 2 - 16; // половина ширины спрайта игрока
+    const playerY = platY - 48;
+
+    const p = makePlayer();
+    p.x  = playerX;
+    p.y  = playerY;
     p.vy = JUMP_V;
     p.vx = 0;
 
-    setState({ player: p, cameraY: sp.cameraY, reviveSavePoint: null });
+    // cameraY: игрок на 38% высоты экрана
+    const cameraY = playerY - H * 0.38;
 
-    const safeX = Math.min(Math.max(p.x - 31, 0), W - 62);
-    const safeY = p.y + 40;
+    setState({ player: p, cameraY, reviveSavePoint: null });
+    // запоминаем cameraY и score на момент revive,
+    // чтобы счёт продолжался от текущего значения а не падал
+    setScoreBase(GameState.score, cameraY);
 
     GameState.platforms = [];
     lastGenType = 'normal';
     Diamonds.reset();
 
-    GameState.platforms.push(makeGamePlatform(safeX, safeY, 'normal', GameState.score));
-    let py = safeY;
-    for (let i = 0; i < 14; i++) {
-        py -= 70 + Math.random() * 55;
-        GameState.platforms.push(makeGamePlatform(
-            Math.random() * (W - 70), py,
-            pickType(GameState.score), GameState.score
-        ));
-    }
+    // одна гарантированная платформа по центру
+    GameState.platforms.push(makeGamePlatform(platX, platY, 'normal', GameState.score));
+    // сбрасываем _topPlatY чтобы generateMore сразу добрал платформы выше
+    resetTopPlatY(platY);
+
 
     Audio.systemResume();
     Audio.switchToIfNeeded('game');
