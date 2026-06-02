@@ -12,7 +12,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="preload" href="img/background.jpg" as="image">
+    <link rel="preload" href="img/background.png" as="image">
+    <link rel="preload" href="img/background_dark.png" as="image">
     <link rel="preload" href="img/dood.png" as="image">
     <!--ЯНДЕКС SDK-->
     <script>
@@ -29,8 +30,9 @@
             }
         }
     </script>
-    <script async src="/sdk.js" onload="initSDK()"></script>
+    <script async src="/sdk.js" onload="initSDK()" onerror="_resolveSDK(null)"></script>
     <!--СКРИПТЫ ИГРЫ-->
+    <script src="js/preloader.js" defer></script>
     <script src="js/sdk.js" defer></script>
     <script src="js/ui_config.js" defer></script>
     <script src="js/i18n.js" defer></script>
@@ -74,6 +76,7 @@
         <div id="diamondDisplay" style="display:none;">💎 0</div>
         <div id="loadingScreen">
             <span id="loadingText">Загрузка</span><span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+            <div id="loadingBarWrap"><div id="loadingBar"></div></div>
         </div>
         <div id="overlay"></div>
         <button id="pauseBtn" style="display:none;">⏸</button>
