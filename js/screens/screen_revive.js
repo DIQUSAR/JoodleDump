@@ -8,7 +8,9 @@ function showReviveOffer() {
         <p class="sub" style="font-size:18px;color:#444;margin:4px 0 16px;">
             ${I18n.t('scoreLabel')}<b>${GameState.score}</b>
         </p>
-        <p id="reviveOfferText" style="font-size:15px;color:#555;margin-bottom:16px;">${I18n.t('reviveOffer')}</p>
+        <p id="reviveOfferText" style="font-size:15px;color:#555;margin-bottom:16px;">
+            <span data-revive-icon style="margin-right:4px">👁</span>${I18n.t('reviveOffer')}
+        </p>
         <div><button id="btnRevive"     class="menu-btn">${I18n.t('btnRevive')}</button></div>
         <div><button id="btnSkipRevive" class="menu-btn">${I18n.t('btnSkipRevive')}</button></div>
     `;
