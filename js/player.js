@@ -14,7 +14,7 @@ const SKINS = {
         drawH:      50,
         drawOX:     -20,
         drawOY:     -40,
-        glow:       '#00e676',  // зелёный
+        glow:       '#00FF83',  // зелёный
     },
     dood_blue: {
         src:        'img/dood_blue.png',
@@ -25,7 +25,7 @@ const SKINS = {
         drawH:      50,
         drawOX:     -20,
         drawOY:     -40,
-        glow:       '#448aff',  // синий
+        glow:       '#005FFF',  // синий
     },
     dood_red: {
         src:        'img/dood_red.png',
@@ -36,7 +36,7 @@ const SKINS = {
         drawH:      50,
         drawOX:     -20,
         drawOY:     -40,
-        glow:       '#ff1744',  // красный
+        glow:       '#FF0031',  // красный
     },
     dood_gold: {
         src:        'img/dood_gold.png',
@@ -47,7 +47,7 @@ const SKINS = {
         drawH:      50,
         drawOX:     -20,
         drawOY:     -40,
-        glow:       '#ffd740',  // золотой
+        glow:       '#FFCA00',  // золотой
     },
     dood_diamond: {
         src:        'img/dood_diamond.png',
@@ -58,7 +58,7 @@ const SKINS = {
         drawH:      50,
         drawOX:     -20,
         drawOY:     -40,
-        glow:       '#84ffff',  // голубой/алмазный
+        glow:       '#5FFFFF',  // голубой
     },
     dood_ruby: {
         src:        'img/dood_ruby.png',
@@ -69,7 +69,7 @@ const SKINS = {
         drawH:      50,
         drawOX:     -20,
         drawOY:     -40,
-        glow:       '#f50057',  // рубиновый
+        glow:       '#FF005B',  // рубиновый
     },
     dood_robo: {
         src:        'img/dood_robo.png',
@@ -80,10 +80,10 @@ const SKINS = {
         drawH:      50,
         drawOX:     -20,
         drawOY:     -40,
-        glow:       '#e040fb',  // фиолетовый/кибер
+        glow:       '#FB8800',  // оранжевый
     },
-    dood_yandex: {
-        src:        'img/dood_yandex.png',
+    dood_fashion: {
+        src:        'img/dood_fashion.png',
         defaultDir: 1,
         w:          44,
         h:          44,
@@ -91,7 +91,18 @@ const SKINS = {
         drawH:      50,
         drawOX:     -20,
         drawOY:     -40,
-        glow:       '#FFF50F',  // черный
+        glow:       '#FF00DD',  // розовый
+    },
+    dood_mafia: {
+        src:        'img/dood_mafia.png',
+        defaultDir: 1,
+        w:          44,
+        h:          44,
+        drawW:      50,
+        drawH:      50,
+        drawOX:     -20,
+        drawOY:     -40,
+        glow:       '#9911FF',  // фиолетовый
     },
 };
 

@@ -74,16 +74,16 @@ const Particles = (() => {
             if (p.imgReady && p.img) {
                 const size = 22 * scale;
                 ctx.drawImage(p.img, -size / 2, -size / 2, size, size);
-                ctx.font         = 'bold 13px Patrick Hand, cursive';
+                ctx.font         = 'bold 13px Nunito, sans-serif';
                 ctx.textAlign    = 'left';
                 ctx.textBaseline = 'middle';
                 ctx.lineWidth    = 3;
                 ctx.strokeStyle  = 'rgba(255,255,255,0.85)';
-                ctx.strokeText('+1', size / 2 + 2, 0);
+                ctx.strokeText(p.text, size / 2 + 2, 0);
                 ctx.fillStyle    = p.color;
-                ctx.fillText('+1', size / 2 + 2, 0);
+                ctx.fillText(p.text, size / 2 + 2, 0);
             } else {
-                ctx.font         = 'bold 15px Patrick Hand, cursive';
+                ctx.font         = 'bold 15px Nunito, sans-serif';
                 ctx.textAlign    = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.lineWidth    = 4;

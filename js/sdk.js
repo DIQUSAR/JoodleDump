@@ -42,5 +42,46 @@ const SDK = (() => {
         });
     }
 
-    return { get, call, Gameplay, notifyReady };
+    let _payments = null;
+
+    const Payments = {
+        async init() {
+            try {
+                const sdk = await get();
+                if (!sdk) return;
+                _payments = await sdk.getPayments({ signed: true });
+                console.info('[SDK.Payments] инициализирован');
+            } catch (e) {
+                console.warn('[SDK.Payments] init failed:', e);
+            }
+        },
+
+        // возвращает { ok: true } | { ok: false, reason: string }
+        async purchase(productId) {
+            if (!_payments) return { ok: false, reason: 'unavailable' };
+            try {
+                const purchase = await _payments.purchase({ id: productId });
+                return { ok: true, purchase };
+            } catch (e) {
+                // пользователь закрыл окно — не ошибка
+                const reason = e?.code === 'USER_CLOSED' ? 'cancelled' : 'error';
+                console.warn('[SDK.Payments] purchase failed:', e);
+                return { ok: false, reason };
+            }
+        },
+
+        // возвращает массив id купленных товаров
+        async restore() {
+            if (!_payments) return [];
+            try {
+                const list = await _payments.getPurchases();
+                return list.map(p => p.productID);
+            } catch (e) {
+                console.warn('[SDK.Payments] restore failed:', e);
+                return [];
+            }
+        },
+    };
+
+    return { get, call, Gameplay, notifyReady, Payments };
 })();

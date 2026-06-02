@@ -23,8 +23,8 @@ const Adv = (() => {
             return;
         }
 
-        // Звук глушим до показа рекламы
-        Audio.systemPause();
+        // звук глушим до показа рекламы
+        Audio.beginAd();
 
         sdk.adv.showFullscreenAdv({
             callbacks: {
@@ -33,12 +33,12 @@ const Adv = (() => {
                 },
                 onClose: (wasShown) => {
                     _lastFullscreenAt = Date.now();
-                    Audio.systemResume();
+                    Audio.resumeAfterAd();
                     console.info('[Adv] Fullscreen закрыта, wasShown:', wasShown);
                     onClose?.(wasShown);
                 },
                 onError: (err) => {
-                    Audio.systemResume();
+                    Audio.resumeAfterAd();
                     console.warn('[Adv] Fullscreen ошибка:', err);
                     onClose?.(false);
                 },
@@ -56,7 +56,7 @@ const Adv = (() => {
             return;
         }
 
-        Audio.systemPause();
+        Audio.beginAd();
 
         sdk.adv.showRewardedVideo({
             callbacks: {
@@ -68,12 +68,12 @@ const Adv = (() => {
                     onRewarded?.();
                 },
                 onClose: (wasShown) => {
-                    Audio.systemResume();
+                    Audio.resumeAfterAd();
                     console.info('[Adv] Rewarded закрыта, wasShown:', wasShown);
                     onClose?.(wasShown);
                 },
                 onError: (err) => {
-                    Audio.systemResume();
+                    Audio.resumeAfterAd();
                     console.warn('[Adv] Rewarded ошибка:', err);
                     onClose?.(false);
                 },

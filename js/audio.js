@@ -18,18 +18,21 @@ const Audio = (() => {
     let _muted       = false;
     let _ctxReady    = false;
     let _forcePause  = false;
+    let _adActive    = false;   // true пока показывается реклама — блокирует focus/systemResume
     let _pauseOffset = 0;   // позиция трека в момент паузы (сек)
     let _pauseStart  = 0;   // ctx.currentTime в момент старта source
 
     try { _muted = localStorage.getItem('dj_muted') === 'true'; } catch (_) {}
 
     function _fetchAll() {
-        Object.entries(AUDIO_CONFIG).forEach(([name, cfg]) => {
-            fetch(cfg.src)
-                .then(r => r.arrayBuffer())
-                .then(ab => { _rawBuffers[name] = ab; })
-                .catch(e => console.warn('[Audio] fetch failed:', name, e));
-        });
+        return Promise.all(
+            Object.entries(AUDIO_CONFIG).map(([name, cfg]) =>
+                fetch(cfg.src)
+                    .then(r => r.arrayBuffer())
+                    .then(ab => { _rawBuffers[name] = ab; })
+                    .catch(e => console.warn('[Audio] fetch failed:', name, e))
+            )
+        );
     }
 
     function _ensureCtx() {
@@ -88,6 +91,17 @@ const Audio = (() => {
         _pauseStart = _ctx.currentTime;
         _pauseOffset = safeOffset;
         _bgSource = src;
+    }
+
+    // вызывается по первому жесту — создаёт ctx и декодирует все буферы
+    // повторный вызов безопасен
+    function decodeAll() {
+        if (_ctxReady) return Promise.resolve();
+        _ensureCtx();
+        if (_ctx.state === 'suspended') _ctx.resume();
+        return Promise.all(
+            Object.keys(AUDIO_CONFIG).map(name => _decode(name).catch(() => {}))
+        );
     }
 
     function init() {
@@ -162,16 +176,29 @@ const Audio = (() => {
         _stopBg();
     }
 
+    function beginAd() {
+        _adActive = true;
+        systemPause();
+    }
+
     function forceResume() {
         _forcePause = false;
         if (_ctx && _ctx.state === 'suspended') _ctx.resume();
     }
 
     function systemResume() {
+        if (_adActive) return;
         _forcePause = false;
         if (_ctx && _ctx.state === 'suspended') _ctx.resume();
         if (_onResumeAllowed && !_onResumeAllowed()) return;
         play();
+    }
+
+    // снимает флаги после рекламы — play() вызывает тот, кто управляет навигацией
+    function resumeAfterAd() {
+        _adActive   = false;
+        _forcePause = false;
+        if (_ctx && _ctx.state === 'suspended') _ctx.resume();
     }
 
     let _onResumeAllowed = null;
@@ -188,12 +215,13 @@ const Audio = (() => {
 
     function isMuted() { return _muted; }
 
-    _fetchAll();
+    const _fetchAllPromise = _fetchAll();
 
     return {
-        init, switchTo, switchToIfNeeded, playSfx,
-        play, pause, forceResume, systemPause, systemResume,
+        init, decodeAll, switchTo, switchToIfNeeded, playSfx,
+        play, pause, forceResume, systemPause, beginAd, systemResume, resumeAfterAd,
         setResumeGuard, toggleMute, isMuted,
+        _fetchAllPromise,
     };
 })();
 

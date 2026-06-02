@@ -78,6 +78,7 @@ function makeGamePlatform(x, y, type, score = 0) {
 }
 
 let _topPlatY = 0;
+function resetTopPlatY(y) { _topPlatY = y; }
 
 function spawnInitialPlatforms() {
     GameState.platforms = [];

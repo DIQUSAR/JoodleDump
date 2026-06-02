@@ -1,31 +1,39 @@
-// notebook-style background renderer
-// supports light and dark modes via Theme.isDark()
+// background renderer for menu and gameplay
+// menu: background.png (light) / background_dark.png (dark)
+// gameplay: solid fill + notebook grid lines
 
 const BG_LIGHT = {
-    fill:        '#f8f8f2',
-    lineV:       'rgba(180, 200, 230, 0.55)',
-    lineH:       'rgba(180, 200, 230, 0.45)',
-    lineHBold:   'rgba(180, 200, 230, 0.45)',
-    lineRed:     'rgba(220, 80, 80, 0.35)',
+    fill:      '#f8f8f2',
+    lineV:     'rgba(180, 200, 230, 0.55)',
+    lineH:     'rgba(180, 200, 230, 0.45)',
+    lineHBold: 'rgba(180, 200, 230, 0.45)',
+    lineRed:   'rgba(220, 80, 80, 0.35)',
 };
 
 const BG_DARK = {
-    fill:        '#1a1a2a',
-    lineV:       'rgba(80, 100, 150, 0.45)',
-    lineH:       'rgba(80, 100, 150, 0.35)',
-    lineHBold:   'rgba(80, 100, 150, 0.45)',
-    lineRed:     'rgba(180, 60, 60, 0.35)',
+    fill:      '#1a1a2a',
+    lineV:     'rgba(80, 100, 150, 0.45)',
+    lineH:     'rgba(80, 100, 150, 0.35)',
+    lineHBold: 'rgba(80, 100, 150, 0.45)',
+    lineRed:   'rgba(180, 60, 60, 0.35)',
 };
 
-const _menuBgImg = new Image();
-_menuBgImg.src = 'img/background.jpg';
+const _bgImgLight = new Image();
+_bgImgLight.src = 'img/background.png';
 
+const _bgImgDark = new Image();
+_bgImgDark.src = 'img/background_dark.png';
+
+function _currentBgImg() {
+    return Theme.isDark() ? _bgImgDark : _bgImgLight;
+}
 
 function drawMenuBackground() {
-    if (_menuBgImg.complete && _menuBgImg.naturalWidth > 0) {
-        ctx.drawImage(_menuBgImg, 0, 0, W, H);
+    const img = _currentBgImg();
+    if (img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, 0, 0, W, H);
     } else {
-        ctx.fillStyle = '#f0ede0';
+        ctx.fillStyle = Theme.isDark() ? '#1a1a2a' : '#f0ede0';
         ctx.fillRect(0, 0, W, H);
     }
 }

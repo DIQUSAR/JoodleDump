@@ -12,13 +12,14 @@ const Shop = (() => {
     // Мета-данные скинов для магазина
     const SKIN_META = {
         dood:         { labelKey: 'skinDood',    price: null },
-        dood_blue:    { labelKey: 'skinBlue',    price: 50   },
-        dood_red:     { labelKey: 'skinRed',     price: 100  },
-        dood_gold:    { labelKey: 'skinGold',    price: 250  },
-        dood_diamond: { labelKey: 'skinDiamond', price: 1000  },
-        dood_ruby:    { labelKey: 'skinRuby',    price: 2500  },
-        dood_robo:    { labelKey: 'skinRobo',    price: 5000 },
-        dood_yandex:    { labelKey: 'skinYandex',    price: 10000 },
+        dood_blue:    { labelKey: 'skinBlue',    price: 500   },
+        dood_red:     { labelKey: 'skinRed',     price: 1000  },
+        dood_gold:    { labelKey: 'skinGold',    price: 2500  },
+        dood_diamond: { labelKey: 'skinDiamond', price: 5000  },
+        dood_ruby:    { labelKey: 'skinRuby',    price: 10000  },
+        dood_robo:    { labelKey: 'skinRobo',    price: null, adTarget: 100, perks: [{cls:'perk-diamond',text:'+1'}] },
+        dood_fashion: { labelKey: 'skinFashion', price: null, iap: 'skin_fashion', yanPrice: 25, perks: [{cls:'perk-diamond',text:'+3'},{cls:'perk-score',text:'×2'}] },
+        dood_mafia:   { labelKey: 'skinMafia',   price: null, iap: 'skin_mafia',   yanPrice: 50, perks: [{cls:'perk-diamond',text:'+5'},{cls:'perk-score',text:'×3'}] },
     };
 
     // Активные бусты рендерятся из Actives.DEFS
@@ -31,6 +32,38 @@ const Shop = (() => {
         } catch (_) { return new Set(); }
     })();
     _owned.add('dood');
+
+    const AD_SKIN_KEY = 'dj_robo_ad';
+    const AD_SKIN_ID  = 'dood_robo';
+    let _adCount = (() => {
+        try { return Math.min(parseInt(localStorage.getItem(AD_SKIN_KEY), 10) || 0,
+            SKIN_META.dood_robo?.adTarget || 100); } catch (_) { return 0; }
+    })();
+
+    function _saveAdCount() {
+        try { localStorage.setItem(AD_SKIN_KEY, _adCount); } catch (_) {}
+    }
+
+    function onAdWatched() {
+        if (isOwned(AD_SKIN_ID)) return;
+        const meta = SKIN_META[AD_SKIN_ID];
+        if (!meta?.adTarget) return;
+        _adCount = Math.min(_adCount + 1, meta.adTarget);
+        _saveAdCount();
+        if (_adCount >= meta.adTarget) {
+            _owned.add(AD_SKIN_ID);
+            _saveOwned();
+            if (typeof YandexSync !== 'undefined') YandexSync.save();
+        }
+        const badge = document.querySelector(`[data-skin='${AD_SKIN_ID}'] .shop-badge`);
+        if (badge) {
+            const label = `${_adCount}/${meta.adTarget}`;
+            badge.className = 'shop-badge price shop-badge--ad';
+            badge.setAttribute('data-ad-badge', '');
+            badge.textContent = label;
+            applyUIConfig(badge.closest('.shop-card') ?? badge);
+        }
+    }
 
     function _saveOwned() {
         try { localStorage.setItem('dj_owned_skins', JSON.stringify([..._owned])); } catch (_) {}
@@ -168,8 +201,14 @@ const Shop = (() => {
                 badge = `<span class="shop-badge active">${I18n.t('skinActive')}</span>`;
             } else if (owned) {
                 badge = `<span class="shop-badge owned">${I18n.t('skinSelect')}</span>`;
+            } else if (meta.iap) {
+                badge = `<span class="shop-badge price" data-iap-badge>${meta.yanPrice} ${I18n.t('yanUnit')}</span>`;
+            } else if (meta.adTarget) {
+                const goal  = meta.adTarget;
+                const label = `${_adCount}/${goal}`;
+                badge = `<span class="shop-badge price shop-badge--ad" data-ad-badge>${label}</span>`;
             } else {
-                badge = `<span class="shop-badge price">${DIAMOND_CFG.uiIcon} ${meta.price}</span>`;
+                badge = `<span class="shop-badge price"><img src="img/diamond.png" style="width:12px;height:12px;vertical-align:middle"> ${meta.price}</span>`;
             }
 
             return `
@@ -180,6 +219,7 @@ const Shop = (() => {
                     </div>
                     <div class="shop-card-label">${I18n.t(meta.labelKey)}</div>
                     <div class="shop-card-status">${badge}</div>
+                    ${meta.perks ? `<div class="shop-card-perk">${meta.perks.map(p=>`<span class="${p.cls}"></span>${p.text}`).join('  ')}</div>` : ''}
                 </div>
             `;
         }).join('');
@@ -300,7 +340,7 @@ const Shop = (() => {
                 const btn = document.getElementById('shopAdBtn');
                 btn.disabled = true;
                 Adv.showRewarded({
-                    onRewarded: () => { Currency.add(50); },
+                    onRewarded: () => { Currency.add(50); onAdWatched(); },
                     onClose:    () => { _render(); },
                 });
             });
@@ -335,7 +375,7 @@ const Shop = (() => {
                 const id = btn.dataset.active;
                 btn.disabled = true;
                 Adv.showRewarded({
-                    onRewarded: () => { Actives.activateForAd(id); },
+                    onRewarded: () => { Actives.activateForAd(id); onAdWatched(); },
                     onClose:    () => { _render(); },
                 });
             });
@@ -370,22 +410,69 @@ const Shop = (() => {
                     try { localStorage.setItem('dj_skin', id); } catch (_) {}
                     if (typeof YandexSync !== 'undefined') YandexSync.save();
                     _render();
-                } else {
-                    if (!Currency.spend(meta.price)) {
-                        card.classList.add('shake');
-                        card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
-                        return;
-                    }
-                    _owned.add(id);
-                    _saveOwned();
-                    activeSkin = id;
-                    try { localStorage.setItem('dj_skin', id); } catch (_) {}
-                    if (typeof YandexSync !== 'undefined') YandexSync.save();
-                    _render();
+                    return;
                 }
+
+                if (meta.adTarget) {
+                    card.style.pointerEvents = 'none';
+                    Adv.showRewarded({
+                        onRewarded: () => { onAdWatched(); },
+                        onClose:    () => {
+                            card.style.pointerEvents = '';
+                            _render();
+                        },
+                    });
+                    return;
+                }
+
+                if (meta.iap) {
+                    card.style.pointerEvents = 'none';
+                    SDK.Payments.purchase(meta.iap).then(result => {
+                        card.style.pointerEvents = '';
+                        Audio.systemResume();
+                        if (!result.ok) {
+                            if (result.reason !== 'cancelled') {
+                                card.classList.add('shake');
+                                card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
+                            }
+                            return;
+                        }
+                        _owned.add(id);
+                        _saveOwned();
+                        activeSkin = id;
+                        try { localStorage.setItem('dj_skin', id); } catch (_) {}
+                        if (typeof YandexSync !== 'undefined') YandexSync.save();
+                        _render();
+                    });
+                    return;
+                }
+
+                if (!Currency.spend(meta.price)) {
+                    card.classList.add('shake');
+                    card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
+                    return;
+                }
+                _owned.add(id);
+                _saveOwned();
+                activeSkin = id;
+                try { localStorage.setItem('dj_skin', id); } catch (_) {}
+                if (typeof YandexSync !== 'undefined') YandexSync.save();
+                _render();
             });
         });
     }
 
-    return { show, isOwned, getOwnedSkins, mergeOwned };
+    function getAdCount() { return _adCount; }
+    function mergeAdCount(cloud) {
+        if (typeof cloud === 'number' && cloud > _adCount) {
+            _adCount = cloud;
+            _saveAdCount();
+            if (_adCount >= (SKIN_META[AD_SKIN_ID]?.adTarget || Infinity) && !isOwned(AD_SKIN_ID)) {
+                _owned.add(AD_SKIN_ID);
+                _saveOwned();
+            }
+        }
+    }
+
+    return { show, isOwned, getOwnedSkins, mergeOwned, onAdWatched, getAdCount, mergeAdCount };
 })();

@@ -1,7 +1,3 @@
-// dark mode state and toggle logic
-// persist: localStorage('dj_dark')
-// consumers call Theme.isDark() to read current mode
-
 const Theme = (() => {
     let _dark = false;
 
@@ -29,9 +25,12 @@ const Theme = (() => {
     }
 
     _load();
-    // apply class immediately so CSS dark rules fire on page load
+
     if (typeof document !== 'undefined') {
-        document.addEventListener('DOMContentLoaded', _applyClass);
+        document.addEventListener('DOMContentLoaded', () => {
+            _applyClass();
+            if (typeof applyBodyBackground === 'function') applyBodyBackground();
+        });
     }
 
     return { isDark, toggle };

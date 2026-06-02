@@ -11,23 +11,26 @@ function _ctrlSchemeHTML() {
     `;
 }
 
-async function _bindCtrlScheme() {
+// requestPermission вызывается максимально близко к жесту — без вложенных async-лямбд
+async function _onCtrlBtnClick(btn, container) {
+    const scheme = btn.dataset.scheme;
+    if (scheme === 'gyro') {
+        const result = await requestGyroPermission();
+        if (result === 'denied')      { btn.innerHTML = I18n.t('gyroDenied');  return; }
+        if (result === 'unavailable') { btn.innerHTML = I18n.t('gyroUnavail'); return; }
+    }
+    ctrlScheme = scheme;
+    try { localStorage.setItem('dj_ctrl', scheme); } catch (_) {}
+    container.querySelectorAll('.ctrl-scheme-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.scheme === scheme);
+    });
+}
+
+function _bindCtrlScheme() {
     const container = document.getElementById('ctrlScheme');
     if (!container) return;
     container.querySelectorAll('.ctrl-scheme-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const scheme = btn.dataset.scheme;
-            if (scheme === 'gyro') {
-                const result = await requestGyroPermission();
-                if (result === 'denied')      { btn.innerHTML = I18n.t('gyroDenied');  return; }
-                if (result === 'unavailable') { btn.innerHTML = I18n.t('gyroUnavail'); return; }
-            }
-            ctrlScheme = scheme;
-            try { localStorage.setItem('dj_ctrl', scheme); } catch (_) {}
-            container.querySelectorAll('.ctrl-scheme-btn').forEach(b => {
-                b.classList.toggle('active', b.dataset.scheme === scheme);
-            });
-        });
+        btn.addEventListener('click', () => _onCtrlBtnClick(btn, container));
     });
 }
 
@@ -56,6 +59,8 @@ function startGame() {
     GameState.player.vy = JUMP_V;
     Diamonds.reset();
 
+    setScoreBase(0, 0); // новая игра — отсчёт с нуля
+    Audio.init();
     Audio.forceResume();
     Audio.switchTo('game');
     Leaderboard.resetRound();
@@ -84,13 +89,31 @@ pauseBtn.addEventListener('click', () => {
 
 // инициализируем UI только после того, как SDK готов
 // это гарантирует что notifyReady() в showMenu() вызовется уже после resolve
-window.yandexSDKPromise.then(() => {
+Promise.all([
+    window.yandexSDKPromise,
+    document.fonts.ready,
+    Preloader.run(),
+    // язык из SDK определяется до отрисовки UI
+    window.yandexSDKPromise.then(() => I18n.initFromSDK()),
+]).then(() => {
     const el = document.getElementById('loadingScreen');
     if (el) el.style.display = 'none';
     initStaticUI();
 });
 
 Audio.setResumeGuard(() => GameState.phase === 'playing');
+
+// декодируем аудио-буферы по первому жесту пользователя
+// к этому моменту ArrayBuffer уже загружен — decode быстрый
+(function _setupEarlyDecode() {
+    function _onFirstGesture() {
+        Audio.decodeAll();
+        document.removeEventListener('pointerdown', _onFirstGesture);
+        document.removeEventListener('keydown',     _onFirstGesture);
+    }
+    document.addEventListener('pointerdown', _onFirstGesture, { once: true });
+    document.addEventListener('keydown',     _onFirstGesture, { once: true });
+})();
 
 YandexSync.init();
 
@@ -101,5 +124,4 @@ async function _initSdkAudioEvents() {
     sdk.on('popup_closed', () => Audio.systemResume());
 }
 _initSdkAudioEvents();
-I18n.initFromSDK();
 Leaderboard.syncHighScore();

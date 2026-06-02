@@ -119,12 +119,16 @@ const Diamonds = (() => {
                 d.collected = true;
                 const doubleChance = Passives.getDoubleChance() * Actives.getDoubleMultiplier();
                 const isDouble     = Math.random() < doubleChance;
-                Currency.add(isDouble ? 2 : 1);
+                const skinBonus    = activeSkin === 'dood_robo'    ? 1
+                                   : activeSkin === 'dood_fashion' ? 3
+                                   : activeSkin === 'dood_mafia'   ? 5 : 0;
+                const amount       = (1 + skinBonus) * (isDouble ? 2 : 1);
+                Currency.add(amount);
                 Audio.playSfx(DIAMOND_CFG.collectSfx);
                 spawnParticles(d.x, d.y, '#5b8dee');
                 spawnPopup(
                     d.x, d.y - 14,
-                    isDouble ? '+2' : '+1',
+                    `+${amount}`,
                     isDouble ? '#f5a623' : '#3a6bd4',
                     DIAMOND_CFG.imgSrc
                 );

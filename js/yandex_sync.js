@@ -26,6 +26,7 @@ const YandexSync = (() => {
         return {
             diamonds:      Currency.get(),
             ownedSkins:    [...Shop.getOwnedSkins()],
+            roboAdCount:   Shop.getAdCount(),
             currentSkin:   activeSkin,
             passiveLevels: Passives.getAllLevels(),
             activeState:   Actives.getAllState(),
@@ -76,6 +77,7 @@ const YandexSync = (() => {
 
         if (Array.isArray(cloud.ownedSkins)) {
             Shop.mergeOwned(cloud.ownedSkins);
+        Shop.mergeAdCount(cloud.roboAdCount);
         }
 
         if (
@@ -102,6 +104,9 @@ const YandexSync = (() => {
     }
 
     async function init() {
+        // инициализируем платежи параллельно с получением профиля
+        SDK.Payments.init();
+
         const player = await _getPlayer();
         if (!player) {
             console.info('[YandexSync] SDK недоступен, работаем без облака');
@@ -123,6 +128,17 @@ const YandexSync = (() => {
         }
 
         _initialized = true;
+
+        // восстанавливаем покупки из яндекс payments (на случай смены устройства)
+        SDK.Payments.restore().then(productIds => {
+            const iapToSkin = { skin_fashion: 'dood_fashion', skin_mafia: 'dood_mafia' };
+            const toGrant = productIds.map(pid => iapToSkin[pid]).filter(Boolean);
+            if (toGrant.length > 0) {
+                Shop.mergeOwned(toGrant);
+                save();
+            }
+        });
+
         Currency.onChange(() => save());
         window.addEventListener('pagehide', saveNow);
         window.addEventListener('beforeunload', saveNow);

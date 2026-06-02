@@ -1,3 +1,12 @@
+// смещение счёта — устанавливается при старте и revive
+let _scoreBase    = 0; // значение score на момент точки отсчёта
+let _cameraBase   = 0; // cameraY на момент точки отсчёта
+
+function setScoreBase(score, cameraY) {
+    _scoreBase  = score;
+    _cameraBase = cameraY;
+}
+
 // физика и логика обновления
 
 function applyInput() {
@@ -127,7 +136,11 @@ function updateCamera() {
 
     GameState.cameraY -= (H * 0.38 - screenPlayerY);
 
-    const newScore = Math.max(GameState.score, (-GameState.cameraY / 10) | 0);
+    const scoreMult = activeSkin === 'dood_fashion' ? 2
+                    : activeSkin === 'dood_mafia'   ? 3 : 1;
+    // delta от базовой точки (старт или revive) умноженная на mult + базовый счёт
+    const cameraDelta = GameState.cameraY - _cameraBase;
+    const newScore    = Math.max(GameState.score, _scoreBase + ((-cameraDelta / 10) * scoreMult) | 0);
     if (newScore !== GameState.score) {
         GameState.score = newScore;
         HUD.setScore(newScore);
