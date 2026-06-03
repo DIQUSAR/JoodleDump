@@ -21,7 +21,16 @@ const HUD = (() => {
     }
 
     function setBalance(v) {
-        _els.diamond.innerHTML = DIAMOND_CFG.uiIcon + ' ' + v;
+        // строим DOM вместо innerHTML — совместимость с Android WebView
+        const el = _els.diamond;
+        el.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = DIAMOND_CFG.imgSrc;
+        img.style.cssText = 'width:24px;height:24px;vertical-align:middle;flex-shrink:0;';
+        img.alt = '';
+        img.setAttribute('draggable', 'false');
+        el.appendChild(img);
+        el.insertAdjacentText('beforeend', ' ' + v);
     }
 
     function show() {

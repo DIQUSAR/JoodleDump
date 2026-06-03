@@ -47,12 +47,11 @@ const YandexSync = (() => {
     }
 
     function _saveLocal() {
+        // highScore и skin не имеют автосохранения при каждом изменении —
+        // их сохраняем явно как страховку перед облачным сохранением
         try {
-            localStorage.setItem('dj_diamonds',       Currency.get());
-            localStorage.setItem('dj_highscore',      GameState.highScore);
-            localStorage.setItem('dj_passive_levels', JSON.stringify(Passives.getAllLevels()));
-            localStorage.setItem('dj_owned_skins',    JSON.stringify([...Shop.getOwnedSkins()]));
-            localStorage.setItem('dj_skin',           activeSkin);
+            localStorage.setItem('dj_highscore', GameState.highScore);
+            localStorage.setItem('dj_skin',      activeSkin);
         } catch (_) {}
     }
 
@@ -77,7 +76,9 @@ const YandexSync = (() => {
 
         if (Array.isArray(cloud.ownedSkins)) {
             Shop.mergeOwned(cloud.ownedSkins);
-        Shop.mergeAdCount(cloud.roboAdCount);
+        }
+        if (typeof cloud.roboAdCount === 'number') {
+            Shop.mergeAdCount(cloud.roboAdCount);
         }
 
         if (
@@ -104,6 +105,7 @@ const YandexSync = (() => {
     }
 
     async function init() {
+        if (_initialized) return;
         // инициализируем платежи параллельно с получением профиля
         SDK.Payments.init();
 

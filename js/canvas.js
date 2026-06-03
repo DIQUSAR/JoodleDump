@@ -3,7 +3,7 @@ const canvas = document.getElementById('gameCanvas');
 // Создаем 2D-контекст для рисования
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = true;
-ctx.imageSmoothingQuality = 'high';
+ctx.imageSmoothingQuality = 'medium';
 // Элементы интерфейса для вывода инфы
 const scoreEl = document.getElementById('scoreDisplay');
 const highEl = document.getElementById('highScoreDisplay');

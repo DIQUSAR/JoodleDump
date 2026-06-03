@@ -110,9 +110,7 @@ const Audio = (() => {
         _ensureCtx();
         if (_ctx.state === 'suspended') _ctx.resume();
         _decodeAll();
-        if (_bgName) {
-            _decode(_bgName).then(buf => _playBgBuffer(_bgName, buf)).catch(() => {});
-        }
+        // запуск трека — ответственность switchTo / play, не init
     }
 
     // останавливаем текущий трек немедленно, не ждём декодирования нового.
@@ -194,11 +192,13 @@ const Audio = (() => {
         play();
     }
 
-    // снимает флаги после рекламы — play() вызывает тот, кто управляет навигацией
+    // снимает флаги после рекламы и возобновляет воспроизведение если фаза позволяет
     function resumeAfterAd() {
         _adActive   = false;
         _forcePause = false;
         if (_ctx && _ctx.state === 'suspended') _ctx.resume();
+        if (_onResumeAllowed && !_onResumeAllowed()) return;
+        play();
     }
 
     let _onResumeAllowed = null;

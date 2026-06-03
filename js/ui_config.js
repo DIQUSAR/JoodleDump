@@ -42,8 +42,6 @@ const UI_CONFIG = {
     },
 
     elements: {
-        'h1': {},
-
         '#menuRecord': {
             icon: { src: 'img/lb.png', size: '25px', position: 'prefix', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
         },
@@ -68,8 +66,6 @@ const UI_CONFIG = {
             icon: { src: 'img/settings.png', size: '25px', position: 'prefix', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
         },
 
-        '.legend': {},
-
         '[data-scheme="keyboard"]': {
             icon: { src: 'img/keyboard.png', size: '22px', position: 'prefix', gap: '0px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
         },
@@ -90,8 +86,6 @@ const UI_CONFIG = {
             icon: { src: 'img/arrow_right.png', size: '36px', position: 'replace', gap: '0px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
         },
 
-        '#pauseTitle': {},
-
         '#btnResume': {
             icon: { src: 'img/play.png', size: '25px', position: 'prefix', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
         },
@@ -103,8 +97,6 @@ const UI_CONFIG = {
         '#btnPauseMenu': {
             icon: { src: 'img/menu.png', size: '25px', position: 'prefix', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
         },
-
-        '#reviveOfferText': {},
 
         '#btnRevive': {
             icon: { src: 'img/revive.png', size: '25px', position: 'prefix', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
@@ -132,11 +124,6 @@ const UI_CONFIG = {
         '#settingsTitle': {
             icon: { src: 'img/settings.png', size: '50px', position: 'prefix', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
         },
-
-        '#settingsMuteBtn': {},
-
-        // dark mode toggle button — styled via darkBtn config above
-        '#settingsDarkBtn': {},
 
         '#settingsLangBtn': {
             icon: { src: 'img/lang.png', size: '25px', position: 'prefix', gap: '2px', tint: 'invert(69%) sepia(89%) saturate(3237%) hue-rotate(0deg) brightness(103%) contrast(104%)' },
@@ -190,10 +177,6 @@ const UI_CONFIG = {
             icon: { src: 'img/jump_boost.png', size: '40px', position: 'replace' },
         },
 
-        '.shop-badge.active': {},
-        '.shop-badge.owned': {},
-        '.shop-badge.price': {},
-
         // иконки перков скинов в карточках магазина
         '.perk-diamond': {
             icon: { src: 'img/diamond.png', size: '11px', position: 'replace' },
@@ -225,10 +208,6 @@ const UI_CONFIG = {
     },
 };
 
-function I18n_t(key) {
-    return typeof I18n !== 'undefined' ? I18n.t(key) : key;
-}
-
 function applyBodyBackground() {
     const cfg = UI_CONFIG.background;
     if (!cfg) return;
@@ -236,22 +215,41 @@ function applyBodyBackground() {
         ? cfg.srcDark
         : cfg.src;
     if (!src) return;
-    document.body.style.backgroundImage      = `url('${src}')`;
-    document.body.style.backgroundSize       = cfg.size     || 'cover';
-    document.body.style.backgroundPosition   = cfg.position || 'center';
-    document.body.style.backgroundRepeat     = 'no-repeat';
-    document.body.style.backgroundAttachment = 'fixed';
+    document.body.style.backgroundImage    = `url('${src}')`;
+    document.body.style.backgroundSize     = cfg.size     || 'cover';
+    document.body.style.backgroundPosition = cfg.position || 'center';
+    document.body.style.backgroundRepeat   = 'no-repeat';
+    // backgroundAttachment:fixed намеренно не выставляется —
+    // iOS Safari и большинство Android-браузеров его не поддерживают на body,
+    // что приводит к белому/пустому фону или артефактам при скролле
 }
 
-function _buildIconHTML(iconCfg) {
+function _buildIconEl(iconCfg) {
     if (!iconCfg || !iconCfg.src) return null;
-    const size   = iconCfg.size   || '18px';
-    const extra  = iconCfg.style  || '';
-    const filter = iconCfg.tint   ? `filter:${iconCfg.tint};` : '';
-    return `<img src="${iconCfg.src}" data-ui-icon="1" `
-        + `style="width:${size};height:${size};object-fit:contain;`
-        + `vertical-align:middle;flex-shrink:0;${filter}${extra}" draggable="false">`;
+    const size   = iconCfg.size  || '18px';
+    const extra  = iconCfg.style || '';
+    const filter = iconCfg.tint  ? `filter:${iconCfg.tint};` : '';
+    const style  = `width:${size};height:${size};object-fit:contain;`
+        + `vertical-align:middle;flex-shrink:0;${filter}${extra}`;
+
+    const el = document.createElement('img');
+
+    // cloneNode не копирует src в ряде WebKit/Blink (Android WebView, старый Samsung Internet),
+    // поэтому создаём новый элемент и всегда ставим src явно.
+    // Если прелоадер уже загрузил картинку — браузер отдаст её из memory-cache мгновенно,
+    // без повторного HTTP-запроса.
+    el.src = iconCfg.src;
+
+    el.setAttribute('style', style);
+    el.setAttribute('data-ui-icon', '1');
+    el.setAttribute('draggable', 'false');
+
+    // alt пустой — декоративная иконка, не нужна screen-reader'у
+    el.alt = '';
+
+    return el;
 }
+
 
 function _applyToElement(el, cfg) {
     if (!cfg || !el) return;
@@ -262,30 +260,47 @@ function _applyToElement(el, cfg) {
 
     const ic = cfg.icon;
     if (ic) {
-        const iconHTML = _buildIconHTML(ic);
-        if (iconHTML) {
+        const iconEl = _buildIconEl(ic);
+        if (iconEl) {
             if (ic.position === 'replace') {
-                el.innerHTML = iconHTML;
+                // replace: очищаем и вставляем только иконку
+                el.innerHTML = '';
+                el.appendChild(iconEl);
             } else {
+                // prefix/suffix: удаляем старую иконку, берём текущий текст как строку,
+                // пересобираем содержимое без временных DOM-обёрток
                 const oldIcon = el.querySelector('img[data-ui-icon]');
-                const text    = oldIcon ? el.textContent.trim() : el.innerHTML.trim();
-                const gap     = `<span style="display:inline-block;width:${ic.gap || '6px'}"></span>`;
-                el.innerHTML  = ic.position === 'suffix'
-                    ? text + gap + iconHTML
-                    : iconHTML + gap + text;
+                if (oldIcon) oldIcon.remove();
+
+                // собираем текстовое содержимое как строку (без дочерних img)
+                let text = '';
+                el.childNodes.forEach(n => {
+                    if (n.nodeType === 3) text += n.nodeValue; // Text node
+                });
+                if (!text) text = el.textContent.trim();
+
+                // используем cfg.text если задан явно
+                const label = (cfg.text !== undefined) ? cfg.text : text;
+
+                el.innerHTML = '';
+
+                if (ic.position === 'suffix') {
+                    el.insertAdjacentText('beforeend', label);
+                    el.appendChild(iconEl);
+                } else {
+                    // prefix (default)
+                    el.appendChild(iconEl);
+                    el.insertAdjacentText('beforeend', label);
+                }
+
+                // cfg.text уже обработан выше, выходим
+                return;
             }
         }
     }
 
-    if (cfg.text !== undefined) {
-        if (ic && ic.position !== 'replace') {
-            const img = el.querySelector('img[data-ui-icon]');
-            el.innerHTML = img
-                ? (ic.position === 'suffix' ? cfg.text + img.outerHTML : img.outerHTML + cfg.text)
-                : cfg.text;
-        } else if (!ic) {
-            el.textContent = cfg.text;
-        }
+    if (cfg.text !== undefined && (!ic || ic.position === 'replace')) {
+        el.textContent = cfg.text;
     }
 }
 
@@ -306,15 +321,22 @@ function updatePauseBtnUI(isPaused) {
     btn.innerHTML = '';
 
     if (state && state.icon && state.icon.src) {
-        const iconHTML = _buildIconHTML(state.icon);
-        if (state.icon.position === 'replace') {
-            btn.innerHTML = iconHTML || '';
+        const iconEl = _buildIconEl(state.icon);
+        if (iconEl) {
+            if (state.icon.position === 'replace') {
+                btn.appendChild(iconEl);
+            } else {
+                const label = state.text || (isPaused ? '▶' : '⏸');
+                if (state.icon.position === 'suffix') {
+                    btn.appendChild(document.createTextNode(label));
+                    btn.appendChild(iconEl);
+                } else {
+                    btn.appendChild(iconEl);
+                    btn.appendChild(document.createTextNode(label));
+                }
+            }
         } else {
-            const label = (state.text || (isPaused ? '▶' : '⏸'));
-            const gap   = `<span style="display:inline-block;width:${state.icon.gap || '6px'}"></span>`;
-            btn.innerHTML = state.icon.position === 'suffix'
-                ? label + gap + iconHTML
-                : iconHTML + gap + label;
+            btn.textContent = (state && state.text) || (isPaused ? '▶' : '⏸');
         }
     } else {
         btn.textContent = (state && state.text) || (isPaused ? '▶' : '⏸');
@@ -325,7 +347,7 @@ function updateMuteBtnUI(btn) {
     if (!btn) return;
     const muted = typeof Audio !== 'undefined' && Audio.isMuted();
     const cfg   = (UI_CONFIG.muteBtn || {})[muted ? 'off' : 'on'] || {};
-    const label = cfg.text || I18n_t(muted ? 'btnSoundOff' : 'btnSoundOn');
+    const label = cfg.text || I18n.t(muted ? 'btnSoundOff' : 'btnSoundOn');
     _applyToElement(btn, { ...cfg, text: label });
 
     const elCfg = (UI_CONFIG.elements || {})['#settingsMuteBtn'];
@@ -338,6 +360,6 @@ function updateDarkBtnUI(btn) {
     const cfg   = (UI_CONFIG.darkBtn || {})[dark ? 'off' : 'on'] || {};
     const label = cfg.text !== undefined && cfg.text !== null
         ? cfg.text
-        : I18n_t(dark ? 'btnDarkOff' : 'btnDarkOn');
+        : I18n.t(dark ? 'btnDarkOff' : 'btnDarkOn');
     _applyToElement(btn, { ...cfg, text: label });
 }

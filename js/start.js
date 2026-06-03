@@ -39,7 +39,8 @@ const pauseScreen = document.getElementById('pauseScreen');
 
 function initStaticUI() {
     HUD.init();
-    applyUIConfig(document);
+    // #btnLeft и #btnRight находятся вне overlay — применяем иконки один раз при старте
+    applyUIConfig(ctrlDiv);
     showMenu();
 }
 
@@ -59,7 +60,8 @@ function startGame() {
     GameState.player.vy = JUMP_V;
     Diamonds.reset();
 
-    setScoreBase(0, 0); // новая игра — отсчёт с нуля
+    setScoreBase(0, 0);
+    // init создаёт AudioContext и запускает декодирование если ещё не запущено
     Audio.init();
     Audio.forceResume();
     Audio.switchTo('game');
@@ -95,13 +97,15 @@ Promise.all([
     Preloader.run(),
     // язык из SDK определяется до отрисовки UI
     window.yandexSDKPromise.then(() => I18n.initFromSDK()),
+    // облачные данные (счёт, валюта, скины) ждём до показа меню
+    window.yandexSDKPromise.then(() => YandexSync.init()),
 ]).then(() => {
     const el = document.getElementById('loadingScreen');
     if (el) el.style.display = 'none';
     initStaticUI();
 });
 
-Audio.setResumeGuard(() => GameState.phase === 'playing');
+Audio.setResumeGuard(() => GameState.phase === 'playing' || GameState.phase === 'idle');
 
 // декодируем аудио-буферы по первому жесту пользователя
 // к этому моменту ArrayBuffer уже загружен — decode быстрый
@@ -115,7 +119,6 @@ Audio.setResumeGuard(() => GameState.phase === 'playing');
     document.addEventListener('keydown',     _onFirstGesture, { once: true });
 })();
 
-YandexSync.init();
 
 async function _initSdkAudioEvents() {
     const sdk = await SDK.get();

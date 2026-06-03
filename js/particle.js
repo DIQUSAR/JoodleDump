@@ -104,8 +104,3 @@ const Particles = (() => {
     return { spawnParticles, spawnPopup, update };
 })();
 
-// обратная совместимость
-function spawnParticles(x, y, color)              { Particles.spawnParticles(x, y, color); }
-function spawnPopup(x, y, text, color, imgSrc)    { Particles.spawnPopup(x, y, text, color, imgSrc); }
-function updateParticles()                         { Particles.update(); }
-function updatePopups()                            { Particles.update(); }

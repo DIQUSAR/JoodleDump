@@ -10,23 +10,12 @@ const DIAMOND_CFG = {
 };
 
 const DiamondSprite = (() => {
-    let _img = null;
-
-    function load(src) {
-        if (!src || _img) return;
-        _img = new Image();
-        _img.onerror = () => { console.warn('[Diamond] не удалось загрузить:', src); };
-        _img.src = src;
+    // изображение гарантированно загружено Preloader'ом до старта игры
+    function get() {
+        return (typeof Preloader !== 'undefined') ? Preloader.get(DIAMOND_CFG.imgSrc) : null;
     }
-
-    // img.complete истинно сразу если ресурс уже в кэше браузера —
-    // не зависит от того сработал ли onload
-    function get() { return (_img && _img.complete && _img.naturalWidth > 0) ? _img : null; }
-
-    return { load, get };
+    return { get };
 })();
-
-DiamondSprite.load(DIAMOND_CFG.imgSrc);
 
 function _drawBuiltinDiamond(ctx, x, y, size, alpha) {
     const s = size;
@@ -125,8 +114,8 @@ const Diamonds = (() => {
                 const amount       = (1 + skinBonus) * (isDouble ? 2 : 1);
                 Currency.add(amount);
                 Audio.playSfx(DIAMOND_CFG.collectSfx);
-                spawnParticles(d.x, d.y, '#5b8dee');
-                spawnPopup(
+                Particles.spawnParticles(d.x, d.y, '#5b8dee');
+                Particles.spawnPopup(
                     d.x, d.y - 14,
                     `+${amount}`,
                     isDouble ? '#f5a623' : '#3a6bd4',
@@ -155,8 +144,3 @@ const Diamonds = (() => {
     return { reset, spawnBetween, update, draw };
 })();
 
-// обратная совместимость
-function resetDiamonds()           { Diamonds.reset(); }
-function spawnDiamondBetween(plat) { Diamonds.spawnBetween(plat); }
-function updateDiamonds()          { Diamonds.update(GameState.tickTime); }
-function drawDiamonds()            { Diamonds.draw(GameState.tickTime); }

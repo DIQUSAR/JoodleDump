@@ -19,8 +19,7 @@ const ACTIVE_DEFS = {
         id:           'diamondFeverBoost',
         labelKey:     'activeFeverLabel',
         descKey:      'activeFeverDesc',
-        icon:         '<img src="img/diamond_chance_x3.png" style="font-size:28px">',       // иконка карточки
-        adIcon:       '',       // иконка кнопки "смотреть рекламу"
+        icon:         '<img src="img/diamond_chance_x3.png" style="width:28px;height:28px;vertical-align:middle">',       // иконка карточки
         costDiamonds: 50,
         durationSec:  5  * 60, // 5 минут
         cooldownSec:  5  * 60, // 5 минут кд
@@ -31,8 +30,7 @@ const ACTIVE_DEFS = {
         id:           'doubleStrikeBoost',
         labelKey:     'activeDoubleLabel',
         descKey:      'activeDoubleDesc',
-        icon:         '<img src="img/diamond_double_x3.png" style="font-size:28px">',
-        adIcon:       '',
+        icon:         '<img src="img/diamond_double_x3.png" style="width:28px;height:28px;vertical-align:middle">',
         costDiamonds: 100,
         durationSec:  5  * 60, // 5 минут
         cooldownSec:  5  * 60, // 5 минут кд
@@ -43,8 +41,7 @@ const ACTIVE_DEFS = {
         id:           'superJumpBoost',
         labelKey:     'activeSuperJumpLabel',
         descKey:      'activeSuperJumpDesc',
-        icon:         '<img src="img/jump_boost_x3.png" style="font-size:28px">',
-        adIcon:       '',
+        icon:         '<img src="img/jump_boost_x3.png" style="width:28px;height:28px;vertical-align:middle">',
         costDiamonds: 30,
         durationSec:  5  * 60, // 5 минут
         cooldownSec:  5 * 60, // 5 минут кд

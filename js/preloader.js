@@ -47,10 +47,14 @@ const Preloader = (() => {
         'img/sound_on.png',
         'img/touch.png',
         'img/wallet.png',
+        'img/lock.png',
+        'img/visibility.png',
     ];
 
+    // карта: src → { img, ok }
+    // ok=false если загрузка упала — _buildIconEl проверяет это и не клонирует сломанный объект
     const _cache = {};
-    let _loaded  = 0;
+    let _loaded   = 0;
 
     function _updateBar() {
         const bar = document.getElementById('loadingBar');
@@ -60,25 +64,44 @@ const Preloader = (() => {
 
     function _loadOne(src) {
         return new Promise(resolve => {
-            if (_cache[src]) { resolve(_cache[src]); return; }
-            const img  = new Image();
-            img.onload = img.onerror = () => {
-                _cache[src] = img;
+            if (_cache[src]) { resolve(_cache[src].img); return; }
+
+            const img = new Image();
+
+            img.onload = () => {
+                _cache[src] = { img, ok: true };
                 _loaded++;
                 _updateBar();
                 resolve(img);
             };
+
+            img.onerror = () => {
+                // сохраняем запись с ok:false чтобы не грузить повторно,
+                // но _buildIconEl не будет клонировать сломанный элемент
+                _cache[src] = { img, ok: false };
+                _loaded++;
+                _updateBar();
+                resolve(null);
+            };
+
+            // decoding: async — браузер не блокирует main thread на декодировании
+            // важно для iOS Safari и Android Chrome при большом кол-ве картинок
+            img.decoding = 'async';
+
+            // fetchpriority — намекаем браузеру на приоритет мелких иконок
+            img.fetchPriority = 'auto';
+
             img.src = src;
         });
     }
 
-    // возвращает уже загруженный img из кэша (для переиспользования в модулях)
-    function get(src) { return _cache[src] || null; }
+    // возвращает img из кэша только если загрузка прошла успешно
+    function get(src) {
+        const entry = _cache[src];
+        return (entry && entry.ok) ? entry.img : null;
+    }
 
     function run() {
-        // аудио fetch параллельно с картинками
-        // _fetchAll() уже вызван в audio.js при загрузке модуля,
-        // здесь получаем его Promise чтобы дождаться завершения
         const audioFetch = typeof Audio !== 'undefined'
             ? Audio._fetchAllPromise || Promise.resolve()
             : Promise.resolve();

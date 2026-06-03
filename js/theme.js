@@ -21,17 +21,14 @@ const Theme = (() => {
         _dark = !_dark;
         _save();
         _applyClass();
+        if (typeof invalidateBgTileCache === 'function') invalidateBgTileCache();
         if (typeof applyBodyBackground === 'function') applyBodyBackground();
     }
 
     _load();
-
-    if (typeof document !== 'undefined') {
-        document.addEventListener('DOMContentLoaded', () => {
-            _applyClass();
-            if (typeof applyBodyBackground === 'function') applyBodyBackground();
-        });
-    }
+    // defer-скрипты выполняются после DOM — DOMContentLoaded уже случился,
+    // применяем класс и фон сразу
+    _applyClass();
 
     return { isDark, toggle };
 })();

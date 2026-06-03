@@ -9,7 +9,7 @@ function setScoreBase(score, cameraY) {
 
 // физика и логика обновления
 
-function applyInput() {
+function applyInput(dt) {
     applyGyroToKeys();
 
     let ax = 0;
@@ -17,25 +17,27 @@ function applyInput() {
     if (GameState.keys.right) ax =  PLAYER_SPD;
 
     const player = GameState.player;
-    player.vx = ax;
+    // скорость масштабируется на dt: при 60 fps dt=1/60 → vx = ax (идентично старому)
+    player.vx = ax * dt * 60;
     if (ax !== 0) player.facing = ax > 0 ? 1 : -1;
 }
 
-function integratePhysics() {
+function integratePhysics(dt) {
+    const scale  = dt * 60;  // нормализация: при dt=1/60 scale=1 → идентично старому
     const player = GameState.player;
-    player.vy += GRAVITY;
-    player.x  += player.vx;
-    player.y  += player.vy;
+    player.vy += GRAVITY * scale;
+    player.x  += player.vx * scale;
+    player.y  += player.vy * scale;
 
     if (player.x > W)            player.x = -player.w;
     if (player.x + player.w < 0) player.x = W;
 }
 
-function updateSquish() {
+function updateSquish(dt) {
     const player = GameState.player;
     const vy = player.vy;
     const squishTarget = vy < -6 ? 0.82 : (vy > 2 ? 1.06 : 1.0);
-    player.squish += (squishTarget - player.squish) * 0.18;
+    player.squish += (squishTarget - player.squish) * 0.18 * dt * 60;
     if (player.squish > 1.10) player.squish = 1.10;
     if (player.squish < 0.70) player.squish = 0.70;
 }
@@ -66,8 +68,8 @@ function resolveCollisions() {
 function _handlePlatformContact(player, p, sjChanceBase) {
     if (p.type === 'fragile') {
         p.breaking = true;
-        spawnParticles(p.x + 31, p.y, '#e84040');
-        spawnPopup(p.x + 31, p.y - 14, I18n.t('popupOops'), '#c62828');
+        Particles.spawnParticles(p.x + 31, p.y, '#e84040');
+        Particles.spawnPopup(p.x + 31, p.y - 14, I18n.t('popupOops'), '#c62828');
         return;
     }
 
@@ -83,39 +85,40 @@ function _handlePlatformContact(player, p, sjChanceBase) {
     Audio.playSfx('jump');
 
     if (isSuperJump) {
-        spawnParticles(p.x + 31, p.y, '#7c4dff');
-        spawnPopup(p.x + 31, p.y - 14, I18n.t('popupSuperJump'), '#512da8');
+        Particles.spawnParticles(p.x + 31, p.y, '#7c4dff');
+        Particles.spawnPopup(p.x + 31, p.y - 14, I18n.t('popupSuperJump'), '#512da8');
     } else if (p.type === 'oneshot') {
-        spawnParticles(p.x + 31, p.y, '#ffcc02');
-        spawnPopup(p.x + 31, p.y - 14, I18n.t('popupLast'), '#e65100');
+        Particles.spawnParticles(p.x + 31, p.y, '#ffcc02');
+        Particles.spawnPopup(p.x + 31, p.y - 14, I18n.t('popupLast'), '#e65100');
     }
 }
 
-function updatePlatforms() {
+function updatePlatforms(dt) {
+    const scale = dt * 60;
     for (let i = 0; i < GameState.platforms.length; i++) {
         const p = GameState.platforms[i];
 
         if (p.breaking) {
-            p.breakTimer++;
+            p.breakTimer += scale;
             p.alpha = p.breakTimer >= 12 ? 0 : 1 - p.breakTimer / 12;
             continue;
         }
 
         if (p.type === 'oneshot' && p.used) {
-            p.alpha -= 0.035;
+            p.alpha -= 0.035 * scale;
             if (p.alpha < 0) p.alpha = 0;
             continue;
         }
 
         if (p.type === 'moving') {
-            _updateMovingPlatform(p);
+            _updateMovingPlatform(p, scale);
         }
     }
 }
 
-function _updateMovingPlatform(p) {
+function _updateMovingPlatform(p, scale) {
     if (p.reverseMode) {
-        p.reverseTimer++;
+        p.reverseTimer += scale;
         if (p.reverseTimer >= p.reverseInterval) {
             p.moveDir *= -1;
             p.reverseTimer = 0;
@@ -124,7 +127,7 @@ function _updateMovingPlatform(p) {
         }
     }
 
-    p.x += p.moveDir * p.moveSpd;
+    p.x += p.moveDir * p.moveSpd * scale;
     if (p.x <= p.moveLeft)  { p.x = p.moveLeft;  p.moveDir =  1; }
     if (p.x >= p.moveRight) { p.x = p.moveRight; p.moveDir = -1; }
 }
@@ -152,18 +155,19 @@ function updateCamera() {
 }
 
 function checkDeath() {
+    if (GameState.phase !== 'playing') return;
     if (GameState.player.y - GameState.cameraY > H + 80) {
         setPhase('dead');
         showGameOver();
     }
 }
 
-function update() {
-    applyInput();
-    integratePhysics();
-    updateSquish();
+function update(dt) {
+    applyInput(dt);
+    integratePhysics(dt);
+    updateSquish(dt);
     resolveCollisions();
-    updatePlatforms();
+    updatePlatforms(dt);
     updateCamera();
     generateMore();
     checkDeath();

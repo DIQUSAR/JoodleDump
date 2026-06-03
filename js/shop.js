@@ -265,7 +265,7 @@ const Shop = (() => {
                         <span class="boost-upgrade-cost">${DIAMOND_CFG.uiIcon} ${def.costDiamonds}</span>
                     </button>
                     <button class="active-ad-btn" data-active="${def.id}">
-                        ${def.adIcon} ${I18n.t('activeWatchAd')}
+                        ${I18n.t('activeWatchAd')}
                     </button>
                 </div>` : '';
 

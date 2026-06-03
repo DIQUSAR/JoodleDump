@@ -4,106 +4,28 @@
 //   1. Положи PNG в img/
 //   2. Добавь запись в SKINS
 //   3. Активировать: activeSkin = 'id'
+// общие параметры всех скинов — переопределять только при отличии
+const SKIN_DEFAULTS = {
+    defaultDir: 1,
+    w:    44, h:    44,
+    drawW: 50, drawH: 50,
+    drawOX: -20, drawOY: -40,
+};
+
+function _skin(src, glow) {
+    return { ...SKIN_DEFAULTS, src, glow };
+}
+
 const SKINS = {
-    dood: {
-        src:        'img/dood.png',
-        defaultDir: 1,
-        w:          44,
-        h:          44,
-        drawW:      50,
-        drawH:      50,
-        drawOX:     -20,
-        drawOY:     -40,
-        glow:       '#00FF83',  // зелёный
-    },
-    dood_blue: {
-        src:        'img/dood_blue.png',
-        defaultDir: 1,
-        w:          44,
-        h:          44,
-        drawW:      50,
-        drawH:      50,
-        drawOX:     -20,
-        drawOY:     -40,
-        glow:       '#005FFF',  // синий
-    },
-    dood_red: {
-        src:        'img/dood_red.png',
-        defaultDir: 1,
-        w:          44,
-        h:          44,
-        drawW:      50,
-        drawH:      50,
-        drawOX:     -20,
-        drawOY:     -40,
-        glow:       '#FF0031',  // красный
-    },
-    dood_gold: {
-        src:        'img/dood_gold.png',
-        defaultDir: 1,
-        w:          44,
-        h:          44,
-        drawW:      50,
-        drawH:      50,
-        drawOX:     -20,
-        drawOY:     -40,
-        glow:       '#FFCA00',  // золотой
-    },
-    dood_diamond: {
-        src:        'img/dood_diamond.png',
-        defaultDir: 1,
-        w:          44,
-        h:          44,
-        drawW:      50,
-        drawH:      50,
-        drawOX:     -20,
-        drawOY:     -40,
-        glow:       '#5FFFFF',  // голубой
-    },
-    dood_ruby: {
-        src:        'img/dood_ruby.png',
-        defaultDir: 1,
-        w:          44,
-        h:          44,
-        drawW:      50,
-        drawH:      50,
-        drawOX:     -20,
-        drawOY:     -40,
-        glow:       '#FF005B',  // рубиновый
-    },
-    dood_robo: {
-        src:        'img/dood_robo.png',
-        defaultDir: 1,
-        w:          44,
-        h:          44,
-        drawW:      50,
-        drawH:      50,
-        drawOX:     -20,
-        drawOY:     -40,
-        glow:       '#FB8800',  // оранжевый
-    },
-    dood_fashion: {
-        src:        'img/dood_fashion.png',
-        defaultDir: 1,
-        w:          44,
-        h:          44,
-        drawW:      50,
-        drawH:      50,
-        drawOX:     -20,
-        drawOY:     -40,
-        glow:       '#FF00DD',  // розовый
-    },
-    dood_mafia: {
-        src:        'img/dood_mafia.png',
-        defaultDir: 1,
-        w:          44,
-        h:          44,
-        drawW:      50,
-        drawH:      50,
-        drawOX:     -20,
-        drawOY:     -40,
-        glow:       '#9911FF',  // фиолетовый
-    },
+    dood:         _skin('img/dood.png',         '#00FF83'),  // зелёный
+    dood_blue:    _skin('img/dood_blue.png',    '#005FFF'),  // синий
+    dood_red:     _skin('img/dood_red.png',     '#FF0031'),  // красный
+    dood_gold:    _skin('img/dood_gold.png',    '#FFCA00'),  // золотой
+    dood_diamond: _skin('img/dood_diamond.png', '#5FFFFF'),  // голубой
+    dood_ruby:    _skin('img/dood_ruby.png',    '#FF005B'),  // рубиновый
+    dood_robo:    _skin('img/dood_robo.png',    '#FB8800'),  // оранжевый
+    dood_fashion: _skin('img/dood_fashion.png', '#FF00DD'),  // розовый
+    dood_mafia:   _skin('img/dood_mafia.png',   '#9911FF'),  // фиолетовый
 };
 
 let activeSkin = (() => {
@@ -113,49 +35,24 @@ let activeSkin = (() => {
     } catch (_) { return 'dood'; }
 })();
 
-// Загрузчик спрайтов
+// Спрайты скинов — загружены Preloader'ом до старта игры
 const PlayerSprite = (() => {
-    const _imgs  = {};
-    const _ready = {};
-
-    function load(id) {
-        const def = SKINS[id];
-        if (!def || !def.src || _imgs[id]) return;
-
-        const img  = new Image();
-        _ready[id] = false;
-        _imgs[id]  = img;
-
-        img.onload  = () => { _ready[id] = true; };
-        img.onerror = () => { console.warn('[Skin] Не удалось загрузить:', def.src); };
-        img.src = def.src;
-    }
 
     function get(id) {
-        return _ready[id] ? _imgs[id] : null;
+        const def = SKINS[id];
+        if (!def) return null;
+        return (typeof Preloader !== 'undefined') ? Preloader.get(def.src) : null;
     }
 
-    // Обновляется один раз за тик в loop.js — не вычисляется внутри drawPlayer
+    // обновляется один раз за тик в loop.js — не вычисляется внутри drawPlayer
     let glowPulse = 12;
     function updateGlow() {
         const t = performance.now() / 1000;
         glowPulse = 12 + Math.sin(t * Math.PI * 2 * 1.2) * 6;
     }
 
-    return { load, get, updateGlow, get glowPulse() { return glowPulse; } };
+    return { get, updateGlow, get glowPulse() { return glowPulse; } };
 })();
-
-// загружаем активный скин первым — нужен для первого кадра
-PlayerSprite.load(activeSkin);
-
-// остальные скины стартуют сразу следом — браузер сам расставит приоритеты,
-// Image() загрузка не блокирует рендер и не мешает AudioContext
-function preloadInactiveSkins() {
-    Object.keys(SKINS).forEach(id => {
-        if (id !== activeSkin) PlayerSprite.load(id);
-    });
-}
-preloadInactiveSkins();
 
 // Создание игрока
 function makePlayer() {
@@ -187,7 +84,7 @@ function drawPlayer(p) {
     ctx.scale(scaleX, p.squish);
 
     if (img) {
-        // Тень под игроком
+        // тень под игроком
         ctx.beginPath();
         ctx.ellipse(0, skin.h / 2 + 4, skin.w * 0.38, 5, 0, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(0,0,0,0.2)';
@@ -202,12 +99,11 @@ function drawPlayer(p) {
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, skin.drawOX, skin.drawOY, skin.drawW, skin.drawH);
 
-        // Сбрасываем shadow чтобы не влиять на другие элементы
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur  = 0;
 
     } else {
-        // Спрайт ещё грузится — показываем хитбокс-заглушку
+        // спрайт ещё грузится — показываем хитбокс-заглушку
         const hw = skin.w / 2, hh = skin.h / 2;
         ctx.strokeStyle = '#e84040';
         ctx.lineWidth   = 2;

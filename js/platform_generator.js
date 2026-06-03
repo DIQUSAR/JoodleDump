@@ -102,10 +102,9 @@ function generateMore() {
         Diamonds.spawnBetween(newPlat);
     }
 
-    for (let i = GameState.platforms.length - 1; i >= 0; i--) {
-        const p = GameState.platforms[i];
-        if (p.y - GameState.cameraY >= H + 160 || p.alpha <= 0) {
-            GameState.platforms.splice(i, 1);
-        }
-    }
+    GameState.platforms = GameState.platforms.filter(p =>
+        p.y - GameState.cameraY < H + 160 &&
+        p.y - GameState.cameraY > -H * 2 &&
+        p.alpha > 0
+    );
 }
