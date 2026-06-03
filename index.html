@@ -12,9 +12,34 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="preload" href="img/background.png" as="image">
-    <link rel="preload" href="img/background_dark.png" as="image">
-    <link rel="preload" href="img/dood.png" as="image">
+    <link rel="preload" href="img/background.png" as="image" fetchpriority="high">
+    <link rel="preload" href="img/background_dark.png" as="image" fetchpriority="high">
+    <link rel="preload" href="img/dood.png" as="image" fetchpriority="high">
+    <link rel="preload" href="img/sound_on.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/sound_off.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/pause.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/play.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/restart.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/menu.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/settings.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/shop.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/lb.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/skins.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/boosts.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/dark_mode.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/light_mode.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/lang.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/skip.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/revive.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/arrow_left.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/arrow_right.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/keyboard.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/touch.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/gyro.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/wallet.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/diamond.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/lock.png" as="image" fetchpriority="low">
+    <link rel="preload" href="img/visibility.png" as="image" fetchpriority="low">
     <!--ЯНДЕКС SDK-->
     <script>
         let _resolveSDK;
@@ -37,6 +62,7 @@
     <script src="js/ui_config.js" defer></script>
     <script src="js/i18n.js" defer></script>
     <script src="js/constants.js" defer></script>
+    <script src="js/offscreen_compat.js" defer></script>
     <script src="js/gamestate.js" defer></script>
     <script src="js/theme.js" defer></script>
     <script src="js/player.js" defer></script>
