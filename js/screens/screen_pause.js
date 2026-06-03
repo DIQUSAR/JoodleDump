@@ -30,7 +30,6 @@ function pauseGame() {
 
 function resumeGame() {
     if (GameState.phase !== 'paused') return;
-    if (GameState.rafId) { cancelAnimationFrame(GameState.rafId); GameState.rafId = null; }
     GameState.loopRunning = false;
     setPhase('playing');
     pauseScreen.style.display = 'none';

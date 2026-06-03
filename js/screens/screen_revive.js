@@ -29,10 +29,9 @@ function revivePlayer() {
     if (!GameState.reviveSavePoint) { startGame(); return; }
 
     // игрок и стартовая платформа всегда по центру
-    const platW  = 62;
-    const platX  = (W - platW) / 2;
+    const platX  = (W - PLAT_W) / 2;
     const platY  = H * 0.65;
-    const playerX = W / 2 - 16; // половина ширины спрайта игрока
+    const playerX = W / 2 - (SKINS[activeSkin]?.w ?? 44) / 2;
     const playerY = platY - 48;
 
     const p = makePlayer();

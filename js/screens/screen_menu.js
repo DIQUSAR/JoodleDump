@@ -3,20 +3,16 @@
 function updateMenuRecord() {
     const el = document.getElementById('menuRecord');
     if (!el) return;
-    // сохраняем иконку (img[data-ui-icon]) — обновляем только текстовый узел
-    const icon = el.querySelector('img[data-ui-icon]');
     const text = I18n.t('highScore') + ' ' + GameState.highScore;
-    if (icon) {
-        // восстанавливаем структуру как после applyUIConfig: icon + gap + text
-        const gap = el.querySelector('span[style]');
-        el.innerHTML = icon.outerHTML + (gap ? gap.outerHTML : '') + text;
-    } else {
-        el.textContent = text;
-    }
+    // обновляем только текстовые узлы, не трогая icon/gap элементы
+    Array.from(el.childNodes)
+        .filter(n => n.nodeType === 3)
+        .forEach(n => n.remove());
+    el.insertAdjacentText('beforeend', text);
 }
 
 function _startMenuMusic() {
-    try { Audio.init(); Audio.switchToIfNeeded('menu'); } catch (_) {}
+    try { Audio.init(); Audio.decodeAll(); Audio.switchToIfNeeded('menu'); } catch (_) {}
 }
 
 // без init — безопасно вызывать до жеста пользователя
@@ -36,6 +32,7 @@ function showMenu() {
     pauseBtn.style.display    = 'none';
     pauseScreen.style.display = 'none';
     drawMenuBackground();
+    applyBodyBackground();
     overlay.style.display     = 'flex';
 
     HUD.hide();
@@ -57,14 +54,18 @@ function showMenu() {
         <div id="showversion" class="gameversion">v${CONFIG.VERSION}</div>
     `;
 
-    document.getElementById('startBtn').addEventListener('click', () => startGame());
+    document.getElementById('startBtn').addEventListener('click', () => {
+        Audio.init();
+        Audio.decodeAll();
+        startGame();
+    });
     document.getElementById('shopBtn').addEventListener('click', () => { _startMenuMusic(); Shop.show(); });
     document.getElementById('lbBtn').addEventListener('click', () => { _startMenuMusic(); showLeaderboard(); });
     document.getElementById('settingsBtn').addEventListener('click', () => { _startMenuMusic(); showSettings(); });
     _bindCtrlScheme();
     applyUIConfig(overlay);
 
+    _resumeMenuMusic(); // устанавливает _bgName='menu' до systemResume, чтобы play() не поднял game-трек
     Audio.systemResume();
-    _resumeMenuMusic(); // без Audio.init() — безопасно без жеста
     SDK.notifyReady();
 }

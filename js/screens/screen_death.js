@@ -37,13 +37,8 @@ function showGameOver() {
     pauseScreen.style.display = 'none';
     HUD.hide();
 
-    setState({
-        reviveSavePoint: {
-            x:       GameState.player.x,
-            y:       GameState.player.y - 60,
-            cameraY: GameState.cameraY,
-        },
-    });
+    // флаг для revivePlayer — факт смерти без reviveSavePoint = startGame()
+    GameState.reviveSavePoint = { cameraY: GameState.cameraY };
 
     showReviveOffer();
 }
